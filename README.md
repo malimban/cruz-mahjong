@@ -5,11 +5,13 @@ The Cruz clan enjoys a game that uses mahjong tiles, mahjong words, but not mahj
 
 ## setup
 
-1. Mix (halo) the mahjong tiles in the middle and build four walls of about even length, 2 tiles high.
-  1. The end result shold be a square
+This game is played with a standard mahjong set, with no joker tiles
+
+1. Mix (**halo**) the mahjong tiles in the middle and build four walls of about even length, 2 tiles high.
+  1. The end result shold be a square of face-down
 
 2. Have the last winner roll the dice. The sum of the dice determines who is **mano**, or the starting player.
-  1. Note, if both dice have the save value, the winnings will be *doubled*. Indicate this somehow
+  1. Note, if both dice have the save value, the every pay is *doubled*. Indicate this somehow
 
 3. The **mano** can choose any wall other than their own to distribute tiles. Using the value of the dice, count inwards from the chosen wall. (Break between the the counted tiles, **flores**, and the next tile to be counted, the **bunot**). 
 Starting from the tiles after the those counted, distribute 4longx2high wall sections to the **mano** first, then continue counter-clockwise until every player has 16 tiles. Deal the **mano** one more tile, the **sawi**
@@ -26,7 +28,7 @@ Starting from the tiles after the those counted, distribute 4longx2high wall sec
 
 A **set** is three tiles of the same suit, either an incrementing straight (4 5 6) or 3 of a kind
 
-## on other's turn 
+### on other's turn 
 
 **chao** - to form a straight set using the **tapon** (thrown tile) of person before you
 **pong** - given a pair, complete your set using anyone's **tapon**
@@ -42,13 +44,19 @@ then you **tapon** (throw a tile)
 
 Become **mano** by getting one tile (**bunot**) from the non-joker, **bunot** side
 
+if **flores**
+* **bunot** from the **flores** side, until you **bunot** a non-**flores** tile
+
+*it is possible to win from a bunot*
+
 You are **mano** if you have 17 tiles
 
 Typically, just throw, or **tapon** a tile. 
 
-
 Alternatively, you may:
-* 
+* declare a **secret** (four of a kind). Place the tiles face down and get paid 20
+* get paid 10 for 13, 16, or 19 **flores** 
+
 before you **tapon**
 
 ## winning
@@ -59,7 +67,7 @@ If you are missing only one tile to win, you are **puro** and can take the tile 
 
 7 pairs and a set
 
-When the desire card comes, either from **tapon** or **bunot**, call out **todas** because you won and recieve payment
+When the desired card comes, either from **tapon** or **bunot**, call out **todas** because you won and recieve payment
 
 ## paying
 
