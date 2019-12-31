@@ -7,17 +7,28 @@ The Cruz clan enjoys a game that uses mahjong tiles, mahjong words, but not mahj
 
 This game is played with a standard mahjong set, with no joker tiles
 
-1. Mix (**halo**) the mahjong tiles in the middle and build four walls of about even length, 2 tiles high.
-  1. The end result shold be a square of face-down
+> * why is the instructions not
+>   * nesting? below?
 
+1. Mix (**halo**) the mahjong tiles in the middle and build four walls of about even length, 2 tiles high.
+  1. The end result shold be a square of face-down tiles
+  
 2. Have the last winner roll the dice. The sum of the dice determines who is **mano**, or the starting player.
   1. Note, if both dice have the save value, the every pay is *doubled*. Indicate this somehow
-
+  
 3. The **mano** can choose any wall other than their own to distribute tiles. Using the value of the dice, count inwards from the chosen wall. (Break between the the counted tiles, **flores**, and the next tile to be counted, the **bunot**). 
 Starting from the tiles after the those counted, distribute 4longx2high wall sections to the **mano** first, then continue counter-clockwise until every player has 16 tiles. Deal the **mano** one more tile, the **sawi**
+  i. test
   1. The **mano** can choose to have their **sawi** when dealt their second 8-tiles
 
 ### tile disambiguation
+There are three suits:
+* Balls
+* Sticks
+  * 1 stick is typically a bird with #1
+* *Char*acter (pronunced car)
+
+The rest are **flores**
 
 ## quick setup
 1. Deal tiles
@@ -71,4 +82,34 @@ When the desired card comes, either from **tapon** or **bunot**, call out **toda
 
 ## paying
 
-paningit (in the middle) - 10
+### type
+5 sets        - 25
+7 pairs       - 50
+
+### bonuses
+
+#### 10 each
+single **puro**
+  can be specifically paningit (in the middle)
+
+all up (no **chao**, **pong**, **kang**, declared **eskalera**)
+
+all down (all your tiles are down)
+
+no joke (no using joker)
+
+#### 5 sets only
+all **chao**
+
+all **pong**
+
+back to back (**puro** is creating a set from either of two pairs)
+
+### 25 each
+before the fifth (
+
+**jai alai** (pronunced high alie)
+
+### bunot
+
+remember to *double* if the first dice roll was a pair
