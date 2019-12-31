@@ -10,7 +10,12 @@ This game is played with a standard mahjong set, with no joker tiles
 > * why is the instructions not
 >   * nesting? below?
 
-1. Mix (**halo**) the mahjong tiles in the middle and build four walls of about even length, 2 tiles high.
+1. A numbered list
+    1. A nested numbered list
+    2. Which is numbered
+2. Which is numbered
+
+1. Mix (**ha-lo**) the mahjong tiles in the middle and build four walls of about even length, 2 tiles high.
   1. The end result shold be a square of face-down tiles
   
 2. Have the last winner roll the dice. The sum of the dice determines who is **mano**, or the starting player.
@@ -19,7 +24,7 @@ This game is played with a standard mahjong set, with no joker tiles
 3. The **mano** can choose any wall other than their own to distribute tiles. Using the value of the dice, count inwards from the chosen wall. (Break between the the counted tiles, **flores**, and the next tile to be counted, the **bunot**). 
 Starting from the tiles after the those counted, distribute 4longx2high wall sections to the **mano** first, then continue counter-clockwise until every player has 16 tiles. Deal the **mano** one more tile, the **sawi**
   i. test
-  1. The **mano** can choose to have their **sawi** when dealt their second 8-tiles
+  1. The **mano** can choose to have their **sa-wi** when dealt their second 8-tiles
 
 ### tile disambiguation
 There are three suits:
@@ -58,7 +63,7 @@ Become **mano** by getting one tile (**bunot**) from the non-joker, **bunot** si
 if **flores**
 * **bunot** from the **flores** side, until you **bunot** a non-**flores** tile
 
-*it is possible to win from a bunot*
+*it is possible to win from a* ***bunot***
 
 You are **mano** if you have 17 tiles
 
@@ -84,7 +89,9 @@ When the desired card comes, either from **tapon** or **bunot**, call out **toda
 
 ### type
 5 sets        - 25
+* give a marker
 7 pairs       - 50
+* give 2 markers
 
 ### bonuses
 
@@ -106,10 +113,15 @@ all **pong**
 back to back (**puro** is creating a set from either of two pairs)
 
 ### 25 each
-before the fifth (
+before the fifth (if there are less than five tiles in the middle, discard, **tapon** pile)
 
-**jai alai** (pronunced high alie)
+#### marker payments, never doubles
+**jai alai** (pronounced high alie)
+* you have more than 5 markers
+**coriando** (pronounced core e ando)
+* you have more than 5 markers, and are the only one with markers
 
 ### bunot
+give a marker
 
-remember to *double* if the first dice roll was a pair
+remember to *double* if the first dice roll was a pair, except for marker payments
