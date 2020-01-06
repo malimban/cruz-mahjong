@@ -3,17 +3,22 @@ For four players
 
 The Cruz clan enjoys a game that uses mahjong tiles, mahjong words, but not mahjong rules.
 
+
+
 ## setup
 
 This game is played with a standard mahjong set, with no joker tiles
-
-> * why is the instructions not
->   * nesting? below?
 
 1. A numbered list
     1. A nested numbered list
     2. Which is numbered
 2. Which is numbered
+    1. sub number
+    2. 2
+
+> * why is the instructions not
+>   * nesting? below?
+
 
 1. Mix (**ha-lo**) the mahjong tiles in the middle and build four walls of about even length, 2 tiles high.
   1. The end result shold be a square of face-down tiles
@@ -39,6 +44,8 @@ The rest are **flores**
 1. Deal tiles
 2. Convert **flores**
 3. Roll for **joker**
+
+
 
 ## actions
 
@@ -70,10 +77,15 @@ You are **mano** if you have 17 tiles
 Typically, just throw, or **tapon** a tile. 
 
 Alternatively, you may:
-* declare a **secret** (four of a kind). Place the tiles face down and get paid 20
+* **declare** a **secret** (four of a kind). Place the tiles face down, get paid 20, and draw from **flores**
+    * as with paid **kang**, cannot reconvert to 2 pairs
+* **declare** an **eskalera** and get paid ????
+    * makes you ineligible for **all-up**
 * get paid 10 for 13, 16, or 19 **flores** 
 
 before you **tapon**
+
+
 
 ## winning
 
@@ -84,6 +96,8 @@ If you are missing only one tile to win, you are **puro** and can take the tile 
 7 pairs and a set
 
 When the desired card comes, either from **tapon** or **bunot**, call out **todas** because you won and recieve payment
+
+
 
 ## paying
 
@@ -114,6 +128,7 @@ back to back (**puro** is creating a set from either of two pairs)
 
 ### 25 each
 before the fifth (if there are less than five tiles in the middle, discard, **tapon** pile)
+eskalera? also, get another marker
 
 #### marker payments, never doubles
 **jai alai** (pronounced high alie)
