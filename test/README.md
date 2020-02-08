@@ -9,4 +9,4 @@
     2. subn 2
 2. second number
     1. 2.1
-    2. 2.2
+    1. 2.2
