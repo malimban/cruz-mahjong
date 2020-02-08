@@ -7,29 +7,17 @@ The Cruz clan enjoys a game that uses mahjong tiles, mahjong words, but not mahj
 
 ## setup
 
-This game is played with a standard mahjong set, with no joker tiles
-
-1. A numbered list
-    1. A nested numbered list
-    2. Which is numbered
-2. Which is numbered
-    1. sub number
-    2. 2
-
-> * why is the instructions not
->   * nesting? below?
-
+This game is played with a standard mahjong set (144 + 4 blanks). There are no joker tiles
 
 1. Mix (**ha-lo**) the mahjong tiles in the middle and build four walls of about even length, 2 tiles high.
-  1. The end result shold be a square of face-down tiles
+    1. The end result shold be a square of face-down tiles
   
 2. Have the last winner roll the dice. The sum of the dice determines who is **mano**, or the starting player.
-  1. Note, if both dice have the save value, the every pay is *doubled*. Indicate this somehow
+    1. Note, if both dice have the save value, the every pay is *doubled*. Indicate this somehow
   
 3. The **mano** can choose any wall other than their own to distribute tiles. Using the value of the dice, count inwards from the chosen wall. (Break between the the counted tiles, **flores**, and the next tile to be counted, the **bunot**). 
 Starting from the tiles after the those counted, distribute 4longx2high wall sections to the **mano** first, then continue counter-clockwise until every player has 16 tiles. Deal the **mano** one more tile, the **sawi**
-  i. test
-  1. The **mano** can choose to have their **sa-wi** when dealt their second 8-tiles
+    1. The **mano** can choose to have their **sa-wi** when dealt their second 8-tiles
 
 ### tile disambiguation
 There are three suits:
