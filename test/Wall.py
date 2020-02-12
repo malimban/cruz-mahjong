@@ -120,6 +120,14 @@ def _rndWalls(walls = list()):
     return walls
 
 def bldWall(testOutput=False):
+    """Return a randomized wall list
+
+    Parameters
+    ----------
+    testOutput : boolean
+        True for test output
+
+    """
     walls = _initWalls()
 
     if testOutput:
@@ -138,3 +146,8 @@ def bldWall(testOutput=False):
             print(w)
 
     return walls
+
+
+# begin main
+if __name__ == "__main__":
+    wall = bldWall(True)

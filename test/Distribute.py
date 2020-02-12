@@ -6,11 +6,13 @@ setup
 
     [x] mix mahjong
 
-    roll dice
+    [ ] roll dice
 
-    distribute initial
+    [ ] associate wall with player
 
-    flores & back
+    [ ] distribute initial
+
+    [ ] flores & back
 
 
 play
@@ -32,33 +34,105 @@ winning
 
 '''
 
-def _rollDice(): # replace with quantum
+import Wall
+from random import randint # replace with quantum
+from enum import Enum
+
+
+class PlayerOrder(Enum):
+    __order__ = 'SOUTH EAST NORTH WEST'
+
+    SOUTH = 0
+    EAST = 1
+    NORTH = 2
+    WEST = 3
+
+
+def _rollDice(diceCount=2, testOutput=False): # replace with quantum
     DMIN = 1
     DMAX = 6
 
-    d1 = randint(DMIN,DMAX)
-    d2 = randint(DMIN,DMAX)
+    dice = list()
+    for i in range(diceCount):
+        dice.append(randint(DMIN, DMAX))
 
-    return (d1, d2)
+    if testOutput:
+        print("rolld: ",end='')
+        for d in dice:
+            print(d, end=' ')
+        print("\n")
 
-def _findMano():
-    dice = _rollDice()
+    return dice
 
-    sum = dice[1] + dice[0]
+def _findMano(startPlayer=PlayerOrder.SOUTH.value, diceCount=2, playerCount=4,  testOutput=False):
+    dice = _rollDice(diceCount)
 
-    print(dice[0], dice[1], sum)
+    sum = 0
+    for d in dice:
+        sum += d
+
+    if(testOutput):
+        print("Starting Player:", startPlayer)
+
+        for d in dice:
+            print("+", d, end=' ')
+        print("=", sum)
+
+    # 1, 5, 9 is same as rolled player
+    mano = (startPlayer+sum)%playerCount -1
+    if(mano == -1):
+        mano = playerCount-1
+    return mano
+
 
 def _bendWalls(walls=list()):
-    startWallIndex = len(walls)
+    """Return a tuple of 
 
-    return startWallIndex
+    Parameters
+    ----------
+    walls : list
+        Expecting a 148-len wall
 
-def _distributeInit():
+    """
+    increm = len(walls)
+    
+    #           0       1       2           3
+    #         South    East    North      West
+    wallStart = (0, 1*increm, 2*increm, 3*increm)
+
+    return wallStart
+
+def _distributeInit(mano, wall, earlySawi=False, diceCount=2):
+
+    # roll again
+    _rollDice(diceCount)
+
+    # subsection wall, reverse, append to flores side
+
+    # distribute
 
     return None
- 
-import Wall
-from random import randint # replace with quantum
 
-wall = Wall.bldWall()
-print (_bendWalls(wall))
+
+
+
+
+
+def initMahjong(startPlayer=PlayerOrder.SOUTH.value, diceCount=2, playerCount=len([p.value for p in PlayerOrder]), testOutput=False):
+    wall = Wall.bldWall()
+
+    # P0 roll, determine mano
+    mano = _findMano(startPlayer, testOutput=testOutput)
+    if testOutput:
+        print("Mano:", mano)
+
+    # distribute
+
+    # flores
+
+    # joker
+
+
+# begin main
+if __name__ == "__main__":
+    initMahjong(testOutput=True)
