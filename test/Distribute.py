@@ -6,7 +6,7 @@ setup
 
     [x] mix mahjong
 
-    [ ] roll dice
+    [x] roll dice
 
     [ ] associate wall with player
 
@@ -34,9 +34,13 @@ winning
 
 '''
 
-import Wall
+import Wall, math
 from random import randint # replace with quantum
 from enum import Enum
+
+
+diceCount = 2
+playerCount = 4
 
 
 class PlayerOrder(Enum):
@@ -48,7 +52,8 @@ class PlayerOrder(Enum):
     WEST = 3
 
 
-def _rollDice(diceCount=2, testOutput=False): # replace with quantum
+def _rollDice(testOutput=False): # replace with quantum
+    global diceCount
     DMIN = 1
     DMAX = 6
 
@@ -57,23 +62,26 @@ def _rollDice(diceCount=2, testOutput=False): # replace with quantum
         dice.append(randint(DMIN, DMAX))
 
     if testOutput:
-        print("rolld: ",end='')
+        print("\nrolld: ",end='')
         for d in dice:
             print(d, end=' ')
-        print("\n")
+        print()
 
     return dice
 
-def _findMano(startPlayer=PlayerOrder.SOUTH.value, diceCount=2, playerCount=4,  testOutput=False):
-    dice = _rollDice(diceCount)
 
+def _findMano(startPlayer=PlayerOrder.SOUTH.value, testOutput=False):
+    global diceCount, playerCount
+    
+    if(testOutput):
+        print("Starting Player:", startPlayer)
+
+    dice = _rollDice(testOutput)
     sum = 0
     for d in dice:
         sum += d
 
     if(testOutput):
-        print("Starting Player:", startPlayer)
-
         for d in dice:
             print("+", d, end=' ')
         print("=", sum)
@@ -94,20 +102,98 @@ def _bendWalls(walls=list()):
         Expecting a 148-len wall
 
     """
-    increm = len(walls)
+    global playerCount
+
+    increm = len(walls) / playerCount
     
     #           0       1       2           3
     #         South    East    North      West
-    wallStart = (0, 1*increm, 2*increm, 3*increm)
+    wallStart = list()
+
+    for p in range(playerCount):
+        index = math.ceil(p*increm)
+        if index % 2 == 0:
+            wallStart.append(index)
+        else:
+            wallStart.append(index-1)
 
     return wallStart
 
-def _distributeInit(mano, wall, earlySawi=False, diceCount=2):
+
+def _distributeInit(mano, walls, earlySawi=False, testOutput=False):
+    global diceCount, playerCount
+
+    # determine which wall to use
+    bWallIndex = _bendWalls(walls)
+    fromWall = (
+        ((mano+2)%playerCount), # assuming directlly across, clockwise
+        False)
+        # ((mano+1)%playerCount),True)      #assuming right, counterclock CHANGEME
+    adjacentRight = mano - fromWall[0]
+
+    if testOutput:
+        print("StartPos",bWallIndex)
+        print("UseWall:",fromWall)
 
     # roll again
-    _rollDice(diceCount)
+    result = sum(_rollDice(testOutput))*2
+    startIndex = None
 
     # subsection wall, reverse, append to flores side
+    if adjacentRight == -1:
+        startIndex = bWallIndex[fromWall[0]] + result
+        bunot = walls[startIndex:]
+
+        # need to group by pairs, invert, then readd
+        flores = walls[:startIndex]
+        flores.reverse()
+        walls = bunot + flores
+        
+    else: # can choose direction
+        if fromWall[1]: # counterclock, r to l--the usual
+            print("\tright to left")
+            startIndex = bWallIndex[fromWall[0]] + result
+            
+            bunot = walls[startIndex:]
+            flores = walls[:startIndex]
+            flores.reverse()
+            walls = bunot + flores
+        else:
+            print("\tleft to right")
+            startIndex = None
+            try:
+                startIndex = bWallIndex[fromWall[0]+1] - result
+            except:
+                startIndex = bWallIndex[0] - result
+            print(startIndex)
+
+            bunot = walls[:startIndex]
+            bunot.reverse()
+            flores = walls[startIndex:]
+            flores.reverse()
+
+            # pair and reverse bunot
+            tempBunot = list()
+            
+            for i in range(len(bunot)//2,0,-1):
+                tB = bunot.pop()
+                tempBunot.append(bunot.pop())
+                tempBunot.append(tB)  
+            
+            
+            bunot = tempBunot
+            bunot.reverse()
+            
+            walls = bunot + flores
+            
+    if testOutput:
+        print("Starting")
+        if fromWall[1]:
+            print("before",startIndex)
+        else:
+            print("after", startIndex)
+
+        print(walls)
 
     # distribute
 
@@ -118,15 +204,24 @@ def _distributeInit(mano, wall, earlySawi=False, diceCount=2):
 
 
 
-def initMahjong(startPlayer=PlayerOrder.SOUTH.value, diceCount=2, playerCount=len([p.value for p in PlayerOrder]), testOutput=False):
-    wall = Wall.bldWall()
+def initMahjong(startPlayer=PlayerOrder.SOUTH.value, diceCountIn=2, playerCountIn=len([p.value for p in PlayerOrder]), testOutput=False):
+    global diceCount, playerCount
+
+    diceCount = diceCountIn
+    playerCount = playerCountIn
+
+    #walls = Wall.bldWall()
+    walls = list()
+    for i in range(148):
+        walls.append(i)
 
     # P0 roll, determine mano
-    mano = _findMano(startPlayer, testOutput=testOutput)
+    mano = _findMano(startPlayer)#, testOutput=testOutput)
     if testOutput:
         print("Mano:", mano)
 
     # distribute
+    temp = _distributeInit(mano, walls, testOutput=testOutput)
 
     # flores
 
