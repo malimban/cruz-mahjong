@@ -142,8 +142,10 @@ def bldWall(testOutput=False):
 
     if testOutput:
         print("Randomized")    
-        for w in walls:
-            print(w)
+        for i, w in enumerate(walls):
+            print( str(i)+" : " if i%40==0
+                    else ""
+                , "\t", w)
 
     return walls
 
