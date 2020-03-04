@@ -87,12 +87,12 @@ class FloresFace(Enum):
 
 class Tile:
 
-    def __init__(self, value, internal):
+    def __init__(self, value, face):
         self.value = value
-        self.internal = internal
+        self.face = face
 
     def __str__(self):
-        return str(self.value) + "\t" + str(self.internal)
+        return str(self.value) + "\t" + str(self.face)
 
 def _initWalls():
     walls = list()
@@ -115,9 +115,10 @@ def _initWalls():
 
 def _rndWalls(walls = list()):
 
-    random.shuffle(walls) # replace with quantum
+    random.shuffle(walls) # CHANGEME replace with quantum
 
     return walls
+
 
 def bldWall(testOutput=False):
     """Return a randomized wall list

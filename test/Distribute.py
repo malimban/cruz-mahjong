@@ -38,7 +38,7 @@ import Wall, math
 from random import randint # replace with quantum
 from enum import Enum
 
-
+walls = list()
 diceCount = 2
 playerCount = 4
 earlySawi = False
@@ -69,10 +69,10 @@ def _rollDice(testOutput=False): # CHANGEME replace with quantum
     return dice
 
 
-def _findMano(startPlayer=PlayerOrder.SOUTH.value, testOutput=False):
+def _findMano(startRoller=PlayerOrder.SOUTH.value, testOutput=False):
         
     if(testOutput):
-        print("Starting Player:", startPlayer)
+        print("Starting Player:", startRoller)
 
     dice = _rollDice(testOutput)
     sum = 0
@@ -85,13 +85,13 @@ def _findMano(startPlayer=PlayerOrder.SOUTH.value, testOutput=False):
         print("=", sum)
 
     # 1, 5, 9 is same as rolled player
-    mano = (startPlayer+sum)%playerCount -1
+    mano = (startRoller+sum)%playerCount -1
     if(mano == -1):
         mano = playerCount-1
     return mano
 
 
-def _bendWalls(walls=list()):
+def _bendWalls():
     """Return a tuple of begining index wall positions
 
     Parameters
@@ -100,7 +100,7 @@ def _bendWalls(walls=list()):
         Expecting a 148-len wall
 
     """
-    
+
     increm = len(walls) / playerCount
     
     #           0       1       2           3
@@ -117,14 +117,14 @@ def _bendWalls(walls=list()):
     return wallStart
 
 
-def _breakWall(mano, walls, testOutput=False):
+def _breakWall(mano, testOutput=False) -> None:
     """
     Fixes the wall's start and end points
     """
-    global earlySawi
+    global walls, earlySawi
 
     # determine which wall to use
-    bWallIndex = _bendWalls(walls)
+    bWallIndex = _bendWalls()
 
     # CHANGEME to let mano choose... also if roll > 10, let 11 or 1 be chosen... also set early sawi
     fromWall = (                            # [0] = mano wall use, [1] == True : right to left
@@ -200,65 +200,83 @@ def _breakWall(mano, walls, testOutput=False):
         for i, t in enumerate(walls):
             print(t)
 
-    return walls
+    pass
 
 
-def _firstDistrb(walls, testOutput=False):
+def _firstDistrb(testOutput=False):
     '''
     Takes sorted walls and returns list of lists of tiles
+
+    hands[player]   : 0 is Mano
+    hands[p][0]     : hand tiles
+    hands[p][1]     : flores
     '''
-    hands = [[] for j in range(playerCount)]
+    global walls
+
+    hands = [(list(), list()) for j in range(playerCount)]
 
     for i in range(playerCount): # first deal
-        hands[i%playerCount].extend(walls[:8])
+        hands[i][0].extend(walls[:8])
         walls = walls[8:]
 
     if earlySawi:
-        hands[0].append(walls.pop(0))
+        hands[0][0].append(walls.pop(0))
 
     for i in range(playerCount): # second deal
-        hands[i%playerCount].extend(walls[:8])
+        hands[i][0].extend(walls[:8])
         walls = walls[8:]
 
     if not earlySawi:
-        hands[0].append(walls.pop(0))
+        hands[0][0].append(walls.pop(0))
 
 
     if testOutput:
         print("\nshow hands")
         for h in hands:
-            for i, t in enumerate(h):
+            for i, t in enumerate(h[0]):
                 print(t)
             print()
 
     return hands
-'''
 
 
-def initMahjong(startPlayer=PlayerOrder.SOUTH.value, diceCountIn=2, playerCountIn=len([p.value for p in PlayerOrder]), testOutput=False):
-    global diceCount, playerCount
+def _removeFlores(hand):
+    '''
+    Expecting hand list of tiles, returns hand + flores many new tiles
+    '''
+    global walls
+    newTiles = list()
+
+    for i, t in enumerate(hand):
+        if t[0] is None:
+            newTiles.append(walls.pop())
+
+def initMahjong(startRoller=PlayerOrder.SOUTH.value, diceCountIn=2, playerCountIn=len([p.value for p in PlayerOrder]), testOutput=False):
+    global diceCount, playerCount, walls
 
     diceCount = diceCountIn
     playerCount = playerCountIn
 
-    #'''
-    walls = Wall.bldWall(True)
+    #''' invertable comments
+    walls = Wall.bldWall(testOutput=testOutput)
     ''' 
-    walls = list()
+    walls = list()  # [i for i in range(148)]
     for i in range(148):
         walls.append(i)
     '''#'''
 
     # P0 roll, determine mano
-    mano = _findMano(startPlayer)#, testOutput=testOutput)
+    mano = _findMano(startRoller)#, testOutput=testOutput)
     if testOutput:
         print("Mano:", mano)
 
     # distribute
-    walls = _breakWall(mano, walls, testOutput=testOutput)
-    hands = _firstDistrb(walls, testOutput=testOutput)
-    
+    _breakWall(mano, testOutput=testOutput)
+    hands = _firstDistrb(testOutput=testOutput)
+
     # flores
+    #for i in range(len(hands)):
+
 
     # joker
 
