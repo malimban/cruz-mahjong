@@ -33,7 +33,7 @@ winning
 '''
 
 from enum import Enum
-import random # replace with quantum
+from rng import shuffleWalls
 
 class TileType(Enum):
     '''
@@ -102,20 +102,13 @@ def _initWalls():
         if t == TileType.FLORES:
             for f in FloresFace:
                 for i in range(4):
-                    walls.append( Tile(None, f.value))
+                    walls.append( Tile(t.value, f.value))
             continue
 
         # generate non-flores
         for n in range(1,10):
             for i in range(4):
                 walls.append( Tile(n, t.value))
-
-    return walls
-
-
-def _rndWalls(walls = list()):
-
-    random.shuffle(walls) # CHANGEME replace with quantum
 
     return walls
 
@@ -139,7 +132,7 @@ def bldWall(testOutput=False):
         for i in range(3):
             print("\n")
 
-    walls = _rndWalls(walls)
+    walls = shuffleWalls(walls)
 
     if testOutput:
         print("Randomized")    

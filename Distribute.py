@@ -35,12 +35,18 @@ winning
 '''
 
 import Wall, math
-from random import randint # replace with quantum
+from player import Player
+from rng import rollDice
 from enum import Enum
+from Wall import TileType
 
+#send these over
 walls = list()
-diceCount = 2
+players = list()
+joker = None
+
 playerCount = 4
+diceCount = 2
 earlySawi = False
 
 class PlayerOrder(Enum):
@@ -52,29 +58,12 @@ class PlayerOrder(Enum):
     WEST = 3
 
 
-def _rollDice(testOutput=False): # CHANGEME replace with quantum
-    DMIN = 1
-    DMAX = 6
-
-    dice = list()
-    for i in range(diceCount):
-        dice.append(randint(DMIN, DMAX))
-
-    if testOutput:
-        print("\nrolld: ",end='')
-        for d in dice:
-            print(d, end=' ')
-        print()
-
-    return dice
-
-
 def _findMano(startRoller=PlayerOrder.SOUTH.value, testOutput=False):
         
     if(testOutput):
         print("Starting Player:", startRoller)
 
-    dice = _rollDice(testOutput)
+    dice = rollDice(diceCount, testOutput)
     sum = 0
     for d in dice:
         sum += d
@@ -140,7 +129,7 @@ def _breakWall(mano, testOutput=False) -> None:
         )
 
     # roll again
-    result = sum(_rollDice(testOutput))*2
+    result = sum(rollDice(diceCount, testOutput))*2
     startIndex = None
 
     # subsection wall, reverse, append to flores side
@@ -180,6 +169,7 @@ def _breakWall(mano, testOutput=False) -> None:
             tempBunot = list()
             
             for i in range(len(bunot)//2,0,-1):
+                i = i
                 tB = bunot.pop()
                 tempBunot.append(bunot.pop())
                 tempBunot.append(tB)  
@@ -240,25 +230,115 @@ def _firstDistrb(testOutput=False):
     return hands
 
 
-def _removeFlores(hand):
+def _refillFlores(hand):
     '''
     Expecting hand list of tiles, returns hand + flores many new tiles
     '''
     global walls
-    newTiles = list()
+    newHand = list()
+    foundFlores = list()
 
-    for i, t in enumerate(hand):
-        if t[0] is None:
-            newTiles.append(walls.pop())
+    for i, tile in enumerate(hand):
+        if tile.value is TileType.FLORES.value:
+            newHand.append(walls.pop()) # add new tile
+            foundFlores.extend(hand[i:i+1])
+        else:
+            newHand.extend(hand[i:i+1])
+    
+    return (newHand, foundFlores)
+
+
+def _genPlayers(hands, testOutput=False):
+    global players
+
+    for h in hands:
+        players.append(Player(h[0], list()))
+            
+    if testOutput:
+        print("show Player class")
+        for i, p in enumerate(players):
+            print("Player",i,"\t",p)
+
+
+def _distrbAllFlores(testOutput=False):
+    doneDistrb = [False]*playerCount
+    pIndex = 0
+    while False in doneDistrb:
+        if not doneDistrb[pIndex]:
+            sortedTiles = _refillFlores(players[pIndex].hand)
+            newHand = sortedTiles[0]
+            addFlores = sortedTiles[1]
+
+            players[pIndex].hand = newHand
+            
+            if not addFlores: #empty
+                doneDistrb[pIndex] = True
+            else:
+                players[pIndex].flores.extend(addFlores)
+        
+        pIndex += 1
+        if pIndex == playerCount:
+            pIndex = 0
+
+    if testOutput:
+        print("\n\n\nshowing that there are no flores in hand")
+        for i, p in enumerate(players):
+            print("\n\nPlayer",i,"\t")
+
+            print("tiles, count",len(p.hand))
+            for tile in p.hand:
+                print(tile, end="\t\t")
+
+            print("\nbegin flores, count",len(p.flores))
+            for flores in p.flores:
+                print(flores, end="\t\t")
+
+
+def _findJoker(testOutput=False):
+    global walls
+    nonJokers = list()
+
+    # mano roll
+    result = sum(rollDice(diceCount, testOutput))
+
+    # check if flores starts on bottom or top
+    result = result * 2 - 1
+    joker = walls.pop(result)
+
+    if joker.value is TileType.FLORES.value:
+        nonJokers.append(joker)
+        joker = walls.pop(result)
+
+        # joker can't be flores
+        if joker.value is TileType.FLORES.value:
+            nonJokers.append(joker)
+            allDone = _findJoker() # check again to get the right values
+            joker = allDone[0]
+            nonJokers.extend( allDone[1] )
+
+    if testOutput:
+        print("\n\nJoker is", joker)
+        print("flores is")
+        for t in nonJokers:
+            print(t)
+    
+    return (joker, nonJokers)
+
 
 def initMahjong(startRoller=PlayerOrder.SOUTH.value, diceCountIn=2, playerCountIn=len([p.value for p in PlayerOrder]), testOutput=False):
-    global diceCount, playerCount, walls
+    global diceCount, playerCount, walls, joker, players
+
+    # error chk
+    if startRoller > playerCount:
+        print("startRoller must be less than playerCount")
+        return EnvironmentError
+
 
     diceCount = diceCountIn
     playerCount = playerCountIn
 
     #''' invertable comments
-    walls = Wall.bldWall(testOutput=testOutput)
+    walls = Wall.bldWall(testOutput)
     ''' 
     walls = list()  # [i for i in range(148)]
     for i in range(148):
@@ -266,19 +346,40 @@ def initMahjong(startRoller=PlayerOrder.SOUTH.value, diceCountIn=2, playerCountI
     '''#'''
 
     # P0 roll, determine mano
-    mano = _findMano(startRoller)#, testOutput=testOutput)
+    mano = _findMano(startRoller, testOutput=testOutput)
     if testOutput:
         print("Mano:", mano)
 
     # distribute
-    _breakWall(mano, testOutput=testOutput)
-    hands = _firstDistrb(testOutput=testOutput)
+    _breakWall(mano, testOutput)
+    hands = _firstDistrb(testOutput)
+    _genPlayers(hands, testOutput)
 
     # flores
-    #for i in range(len(hands)):
-
+    _distrbAllFlores(testOutput)
 
     # joker
+    jokening = _findJoker(testOutput)
+    joker = jokening[0]
+    players[mano].flores.extend(jokening[1])
+
+    # verify everything
+    if testOutput:
+        print("\n\nbegin verify")
+        for i, p in enumerate(players):
+            print("\nPlayer",i,"\t")
+
+            print("tiles, count",len(p.hand))
+            for tile in p.hand:
+                print(tile, end="\t\t")
+
+            print("\nbegin flores, count",len(p.flores))
+            for flores in p.flores:
+                print(flores, end="\t\t")
+            print()
+
+    return players
+
 
 
 # begin main
