@@ -1,6 +1,9 @@
 # text files
 *.txt
 
+# support filres
+support/
+
 # begin python boilerplate
 # Byte-compiled / optimized / DLL files
 __pycache__/

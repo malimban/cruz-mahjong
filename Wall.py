@@ -68,6 +68,7 @@ class TileType(Enum):
 
     FLORES = "Flores" #'winds', 'dragons', 'blanks']
 
+
 class FloresFace(Enum):
     __order__ = 'EAST SOUTH WEST NORTH RED GREEN WHITE FLOWER SEASON BLANK'
 
@@ -100,6 +101,7 @@ class Tile:
         '''
         return "\t" + str(self.value) + " " + str(self.face)
         #'''
+    
 
 def _initWalls():
     walls = list()
