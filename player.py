@@ -143,6 +143,7 @@ class BasicAI(Player):
         for i, tile in enumerate(nonFlores):
             #if any(tval for tval in nonFlores if tval.value == tile.value+1):
                 #if any(tval for tval in nonFlores if tval.value == tile.value+2):
+	    print("@",tile,end="\t\t")
             midIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value+1), None) 
             endIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value+2), None) 
             if endIndex is not None:
@@ -174,6 +175,7 @@ class BasicAI(Player):
 
         '''
         for i, tile in enumerate(nonFlores):
+	    print("\nPairs",nonFlores)
             midIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value), None) 
             endIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value), None) 
             if endIndex is None:
@@ -190,6 +192,7 @@ class BasicAI(Player):
                     self.pairs.append( nonFlores.pop(midIndex-1) )
                     self.pairs.append( nonFlores.pop(endIndex-2) )
                     self.pairs.append( nonFlores.pop(quadIndex-3) )
+	print("\n\t",self.pairs, "\n")
         #'''
 
     
