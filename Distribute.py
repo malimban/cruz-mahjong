@@ -34,7 +34,7 @@ winning
 
 '''
 
-import Wall, math
+import Wall, math, rng
 from player import Player
 from rng import rollDice
 from enum import Enum
@@ -44,6 +44,7 @@ from Wall import TileType
 walls = list()
 players = list()
 joker = None
+mano = None
 
 playerCount = 4
 diceCount = 2
@@ -115,7 +116,7 @@ def _breakWall(mano, testOutput=False) -> None:
     # determine which wall to use
     bWallIndex = _bendWalls()
 
-    # CHANGEME to let mano choose... also if roll > 10, let 11 or 1 be chosen... also set early sawi
+    # Δ CHANGEME to let mano choose... also if roll > 10, let 11 or 1 be chosen... also set early sawi
     fromWall = (                            # [0] = mano wall use, [1] == True : right to left
         #((mano+2)%playerCount), False)      # assuming directlly across, clockwise
         ((mano+1)%playerCount),True)      #assuming right, counterclock 
@@ -325,8 +326,10 @@ def _findJoker(testOutput=False):
     return (joker, nonJokers)
 
 
-def initMahjong(startRoller=PlayerOrder.SOUTH.value, diceCountIn=2, playerCountIn=len([p.value for p in PlayerOrder]), testOutput=False):
-    global diceCount, playerCount, walls, joker, players
+def initMahjong(startRoller=PlayerOrder.SOUTH.value, isQuantum=False, diceCountIn=2, playerCountIn=len([p.value for p in PlayerOrder]), testOutput=False):
+    global diceCount, playerCount, walls, joker, mano, players
+
+    rng.quantum = isQuantum
 
     # error chk
     if startRoller > playerCount:
