@@ -103,64 +103,58 @@ class BasicAI(Player):
         self._group(self.char)
         self._group(self.stick)
 
-    def _group(self, nonFlores):
+    def _group(self, nonFlores, testOutput=False):
         
         #'''
         if nonFlores:
-            #self._makeStraight(nonFlores)
-            self._makePairs(nonFlores)
+            self._makeStraight(nonFlores, testOutput)
+            self._makePairs(nonFlores, testOutput)
         '''
-        group = self.hand.copy()
-        createdGroup = False
 
-        for i, tile in enumerate(nonFlores):
-            if createdGroup:
-                createdGroup = not createdGroup
-                continue
+        #'''
 
-            # assume straight
-            if any(tval for tval in nonFlores if tval.value == tile.value+1):
-                if any(tval for tval in nonFlores if tval.value == tile.value+2):
-                    setEndIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value+2), None) 
-                    self.sets.extend(nonFlores[i-2:i])
-                    self.sets.extend(nonFlores[setEndIndex:setEndIndex+1])
-                    createdGroup = True
-                    continue
-                else:
-                    self.almostSets.extend(nonFlores[i-2:i])
+    def _makeStraight(self, nonFlores, testOutput=False):    
+        if testOutput:
+            print("\ncurent on straight",nonFlores)
 
-            # assume pairs
+        i=0
+        while i < len(nonFlores):
+            tile = nonFlores[i]
             
-                # assume triples
-                s   etEndIndex = next((j for j, item in enumerate(nonFlores[i:]) if item.value == 5), None) 
+            if testOutput:
+                print("@",tile,end="\t\t")
 
-            # rest get dumped..?
-            self.rem.extend(nonFlores[i-1:i])
+            midIndex = next((j for j, item in enumerate(nonFlores[i+1:]) if item.value == tile.value+1), None)
+            endIndex = next((j for j, item in enumerate(nonFlores[i+2:]) if item.value == tile.value+2), None) 
+
+            if testOutput:
+                print(midIndex+i, endIndex, end="\n")
+
+            if endIndex is not None and midIndex is not None:
+                tempset = list()
+                tempset.append( nonFlores.pop(endIndex+i+2) )
+                tempset.append( nonFlores.pop(midIndex+i+1) )
+                tempset.append( nonFlores.pop(i) )
+                tempset.reverse()
+                self.sets.extend(tempset)
+            else:
+                i += 1
+
+        if testOutput:
+            print("\n\t",self.sets, "\n")
+           
+
+    def _makePairs(self, nonFlores, testOutput=False):
         #'''
-
-    def _makeStraight(self, nonFlores):    
-        print(nonFlores)
-        for i, tile in enumerate(nonFlores):
-            #if any(tval for tval in nonFlores if tval.value == tile.value+1):
-                #if any(tval for tval in nonFlores if tval.value == tile.value+2):
-	    print("@",tile,end="\t\t")
-            midIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value+1), None) 
-            endIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value+2), None) 
-            if endIndex is not None:
-                if midIndex is not None:
-                    self.sets.append( nonFlores.pop(i) )
-                    self.sets.append( nonFlores.pop(midIndex-1) )
-                    self.sets.append( nonFlores.pop(endIndex-2) )
-
-    def _makePairs(self, nonFlores):
-        #'''
-        print(nonFlores)
+        if testOutput:
+            print("\nPairs",nonFlores)
         #for i, tile in enumerate(nonFlores):
         i=0
         #for tile in iter(nonFlores):
         while i < len(nonFlores):
             tile = nonFlores[i]
-            print("@",tile,end="\t\t")
+            if testOutput:
+                print("@",tile,end="\t\t")
             sameValues = [j if t.value == tile.value else None for j,t in enumerate(nonFlores[i+1:])]
 
             if any(x != None for x in sameValues):
@@ -171,11 +165,12 @@ class BasicAI(Player):
                         self.pairs.append( nonFlores.pop(j+i) )
             else:
                 i += 1
-        print("\n\t",self.pairs, "\n")
+        
+        if testOutput:
+            print("\n\t",self.pairs, "\n")
 
         '''
         for i, tile in enumerate(nonFlores):
-	    print("\nPairs",nonFlores)
             midIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value), None) 
             endIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value), None) 
             if endIndex is None:
@@ -192,7 +187,6 @@ class BasicAI(Player):
                     self.pairs.append( nonFlores.pop(midIndex-1) )
                     self.pairs.append( nonFlores.pop(endIndex-2) )
                     self.pairs.append( nonFlores.pop(quadIndex-3) )
-	print("\n\t",self.pairs, "\n")
         #'''
 
     
