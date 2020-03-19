@@ -1,6 +1,9 @@
 
-import Wall
-import Distribute
+import modular
+#import Distribute # really jus tfor joker
+
+joker = EnvironmentError
+joker = modular.Tile(1, modular.TileType.BALL.value) # TESTING VV
 
 class Player:
 
@@ -15,48 +18,47 @@ class Player:
         self.stick = list()
         self.char = list()
         self.jokers = list()
-        
+
         self.num = Player.i
         Player.i += 1
 
     def __str__(self):
-        return str(self.hand) + "\nFlores:\t" + str(self.flores) + "\nJoker:\t" + str(self.jokers)
+        return str(self.hand) + "\tlen " + str(len(self.hand)) + "\nFlores:\t" + str(self.flores) + "\tlen " + str(len(self.flores)) + "\nJoker:\t" + str(self.jokers) + "\tlen " + str(len(self.jokers))
 
     def _place(self, tile):
-        try:
-            #'''
-            if tile.face == Distribute.joker.face and tile.value is Distribute.joker.value:
-                self.jokers.append(tile)
-            elif tile.face == Wall.TileType.BALL.value:
-                self.ball.append(tile)
-            elif tile.face == Wall.TileType.STICK.value:
-                self.stick.append(tile)
-            elif tile.face == Wall.TileType.CHARACTER.value:
-                self.char.append(tile)
-            ''' #https://stackoverflow.com/questions/45459026/python-mix-in-enumerations-as-dictionary-key-how-the-type-is-converted
-            if tile.face == Distribute.joker.face and tile.value == Distribute.joker.value:
-                return self.jokers.append(tile)
-            return {
-                Wall.TileType.BALL.value:       #self.ball.append(tile)
-                print("this should be",Wall.TileType.BALL.value, "\t", tile.face, tile.face is Wall.TileType.BALL.value),
-                Wall.TileType.STICK.value:      self.stick.append(tile),
-                Wall.TileType.CHARACTER.value:  self.char.append(tile)
-            }[tile.face]
-            #'''
-        except:
-            print("Flores found in hand @", tile.face, tile.value)
-            raise Exception
+        global joker
+        print("joker in class::", joker)
 
-    def sortHand(self):
-        for tile in self.hand:
-            self._place(tile)
+        if tile.value == modular.TileType.FLORES.value:
+            self.flores.append(tile)
+            return False
+        # joker not determined... error
+        elif tile.face == joker.face and tile.value is joker.value:
+            self.jokers.append(tile)
+        elif tile.face == modular.TileType.BALL.value:
+            self.ball.append(tile)
+        elif tile.face == modular.TileType.STICK.value:
+            self.stick.append(tile)
+        elif tile.face == modular.TileType.CHARACTER.value:
+            self.char.append(tile)
+        else:
+            print("\nnot placed..?", tile)
+            raise Exception
+        return True
+
+    def sortHand(self, firstSort=False):
+        if firstSort:
+            for tile in self.hand:
+                self._place(tile)
+
+        print("\nfirst",self.ball, self.stick, self.char, self.jokers, sep="\n\t")
 
         self.ball = sorted(self.ball, key=lambda tile: tile.value)
         self.stick = sorted(self.stick, key=lambda tile: tile.value)
         self.char = sorted(self.char, key=lambda tile: tile.value)
         sortedHand = self.ball + self.stick + self.char + self.jokers
 
-        if len(self.hand) == len(sortedHand):
+        if len(self.hand) == len(sortedHand) or len(self.hand) == len(sortedHand)-1:
             self.hand = sortedHand
         else:
             print("Hand != sortedHand on p",self.num)
@@ -70,9 +72,10 @@ class Player:
         """
         Returns True on a non-flores bunot
         """
-        if tile.face is Wall.TileType.FLORES.value:
+        if tile.face is modular.TileType.FLORES.value:
             self.flores.append(tile)
             return False
+        
         self._place(tile)
         self.sortHand()
         return True
@@ -85,7 +88,48 @@ class Player:
         Given a 17-long (18 on a kang with regular win)
         remove a tile from hand and return it
         """
-        raise NotImplementedError("Please implement me")
+        #'''
+        throw = self.hand.pop(0)
+
+        if throw.face == modular.TileType.BALL.value:
+            indexOfRemove = [j if t.value == throw.value else None for j,t in enumerate(self.ball)]
+            
+            for i in indexOfRemove:
+                if i is not None:
+                    self.ball.pop(i)
+                    break
+
+        elif throw.face == modular.TileType.STICK.value:
+            indexOfRemove = [j if t.value == throw.value else None for j,t in enumerate(self.stick)]
+            
+            for i in indexOfRemove:
+                if i is not None:
+                    self.stick.pop(i)
+                    break
+
+        elif throw.face == modular.TileType.CHARACTER.value:
+            indexOfRemove = [j if t.value == throw.value else None for j,t in enumerate(self.char)]
+            for i in indexOfRemove:
+                if i is not None:
+                    self.char.pop(i)
+                    break
+
+        return throw
+        '''
+        balllen = len(self.ball)
+        sticklen = len(self.stick)
+        charlen = len(self.char)
+
+        if balllen > 0 and balllen < sticklen and balllen < charlen:
+            return self.ball.pop()
+        elif sticklen > 0 and sticklen < balllen and sticklen < charlen:
+            return self.stick.pop()
+        else:
+            return self.char.pop()
+        '''
+
+        #raise NotImplementedError("Please implement me")
+
     
 class BasicAI(Player):
 
@@ -97,8 +141,8 @@ class BasicAI(Player):
         self.rem = list()
         self.declared = list()
 
-    def sortHand(self):
-        super(self.__class__, self).sortHand()
+    def sortHand(self, firstSort=False):
+        super(self.__class__, self).sortHand(firstSort)
         self._group(self.ball)
         self._group(self.char)
         self._group(self.stick)
@@ -168,27 +212,6 @@ class BasicAI(Player):
         
         if testOutput:
             print("\n\t",self.pairs, "\n")
-
-        '''
-        for i, tile in enumerate(nonFlores):
-            midIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value), None) 
-            endIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value), None) 
-            if endIndex is None:
-                self.pairs.append( nonFlores.pop(i) )
-                self.pairs.append( nonFlores.pop(midIndex-1) )
-            else: # triple or quad possible
-                quadIndex = next((j for j, item in enumerate(nonFlores) if item.value == tile.value), None) 
-                if quadIndex is None: # triple                     
-                    self.pairs.append( nonFlores.pop(i) )
-                    self.pairs.append( nonFlores.pop(midIndex-1) )
-                    self.pairs.append( nonFlores.pop(endIndex-2) )
-                else:
-                    self.pairs.append( nonFlores.pop(i) )
-                    self.pairs.append( nonFlores.pop(midIndex-1) )
-                    self.pairs.append( nonFlores.pop(endIndex-2) )
-                    self.pairs.append( nonFlores.pop(quadIndex-3) )
-        #'''
-
     
 
     def decideAction(self):
@@ -198,17 +221,24 @@ class BasicAI(Player):
 
         return None
 
+
+
 if __name__ == "__main__":
     '''
     p = Player("dot hand ref", "dot flores ref")
     print("player",p.hand, p.flores, sep="\t\t")    
     '''
-    
-    players = Distribute.initMahjong()
-    Distribute.joker = Wall.Tile(1, Wall.TileType.BALL.value) # TESTING
-    print("distribute joker", Distribute.joker)
 
-    print("Before sorting")
+    import Distribute
+
+    players = Distribute.initMahjong()
+    #joker = modular.Tile(1, modular.TileType.BALL.value) # TESTING VV
+    Distribute.joker = joker
+    print("\n\n joker:", joker)
+
+
+    print("\n\nBefore sorting")
+    print("\n\n joker:", joker)
     for i, p in enumerate(players):
         if i == 0: # TESTING
             print("\nplayer",i,"\n",p)
@@ -216,19 +246,27 @@ if __name__ == "__main__":
 
     
     for p in players:
-        p.sortHand()
-    print("After sorting\n")
+        p.sortHand(firstSort=True)
+    print("\nAfter sorting")
 
     for i, p in enumerate(players):
-        print("\nplayer",i,"\n",p)
+        if i == 0: # TESTING
+            print("\nplayer",i,"\n",p)
     print()
 
-    print("baisc ai init...")
+
+    print("\ntest dumb tapon on p0")
+    for i in range(1, 10):
+        print("throwing ",players[0].tapon(),end="\t\t")
+        players[0].bunot(modular.Tile(i, modular.TileType.BALL.value))
+
+
+    print("\nbaisc ai init...")
     baAI = BasicAI(players[3].hand, players[3].flores)
     
     
-    print("ai group test")
-    baAI.sortHand()
+    print("\nai group test")
+    baAI.sortHand(firstSort=True)
     print("sets",baAI.sets)
     print("pairs",baAI.pairs)
     

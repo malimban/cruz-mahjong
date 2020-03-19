@@ -38,7 +38,7 @@ import Wall, math, rng
 from player import Player
 from rng import rollDice
 from enum import Enum
-from Wall import TileType
+from modular import TileType
 
 #send these over
 walls = list()
