@@ -366,6 +366,7 @@ def initMahjong(startRoller=PlayerOrder.SOUTH.value, isQuantum=False, diceCountI
     joker = jokening[0]
     players[mano].flores.extend(jokening[1])
 
+
     # verify everything
     if testOutput:
         print("\n\nbegin verify")

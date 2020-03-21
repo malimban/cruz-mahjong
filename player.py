@@ -18,16 +18,29 @@ class Player:
         self.stick = list()
         self.char = list()
         self.jokers = list()
+        self.declared = list()
 
         self.num = Player.i
         Player.i += 1
 
     def __str__(self):
-        return str(self.hand) + "\tlen " + str(len(self.hand)) + "\nFlores:\t" + str(self.flores) + "\tlen " + str(len(self.flores)) + "\nJoker:\t" + str(self.jokers) + "\tlen " + str(len(self.jokers))
+        return "P" + str(self.num) + "  " + str(self.hand) + "\tlen " + str(len(self.hand)) + "\nFlores:\t" + str(self.flores) + "\tlen " + str(len(self.flores)) + "\nJoker:\t" + str(self.jokers) + "\tlen " + str(len(self.jokers))
+
+    def _setSet(self, tile):
+        '''
+        return list of tile's face
+        '''
+        if tile.face == modular.TileType.BALL.value:
+            return self.ball
+        elif tile.face == modular.TileType.STICK.value:
+            return self.stick
+        elif tile.face == modular.TileType.CHARACTER.value:
+            return self.char
+        return IOError(tile.face + "not allowed")
 
     def _place(self, tile):
         global joker
-        print("joker in class::", joker)
+        #print("joker in class::", joker)
 
         if tile.value == modular.TileType.FLORES.value:
             self.flores.append(tile)
@@ -50,14 +63,16 @@ class Player:
         if firstSort:
             for tile in self.hand:
                 self._place(tile)
+            print("\nfirst",end="")
 
-        print("\nfirst",self.ball, self.stick, self.char, self.jokers, sep="\n\t")
+        print("P" + str(self.num) ,self.ball, self.stick, self.char, self.jokers, sep="\n\t")
 
         self.ball = sorted(self.ball, key=lambda tile: tile.value)
         self.stick = sorted(self.stick, key=lambda tile: tile.value)
         self.char = sorted(self.char, key=lambda tile: tile.value)
         sortedHand = self.ball + self.stick + self.char + self.jokers
 
+    
         if len(self.hand) == len(sortedHand) or len(self.hand) == len(sortedHand)-1:
             self.hand = sortedHand
         else:
@@ -68,15 +83,16 @@ class Player:
             raise Exception
         return True
 
-    def bunot(self, tile):
+    def bunot(self, tile, testOutput=False):
         """
         Returns True on a non-flores bunot
         """
-        if tile.face is modular.TileType.FLORES.value:
-            self.flores.append(tile)
+        if testOutput:
+            print("bunot", tile)
+
+        if not self._place(tile):
             return False
-        
-        self._place(tile)
+
         self.sortHand()
         return True
 
@@ -130,6 +146,15 @@ class Player:
 
         #raise NotImplementedError("Please implement me")
 
+    def pong(self, tile):
+        return False
+        #raise NotImplementedError("Please implement me")
+        
+
+    def chao(self, tile):
+        #raise NotImplementedError("Please implement me")
+        return False
+
     
 class BasicAI(Player):
 
@@ -139,13 +164,35 @@ class BasicAI(Player):
         self.sets = list()
         self.almostSets = list()
         self.rem = list()
-        self.declared = list()
 
     def sortHand(self, firstSort=False):
-        super(self.__class__, self).sortHand(firstSort)
+        #super(self.__class__, self).sortHand(firstSort)
+        if firstSort:
+            for tile in self.hand:
+                self._place(tile)
+            print("\nfirst",end="")
+
+        print("P" + str(self.num) ,self.ball, self.stick, self.char, self.jokers, sep="\n\t")
+
+        self.ball = sorted(self.ball, key=lambda tile: tile.value)
+        self.stick = sorted(self.stick, key=lambda tile: tile.value)
+        self.char = sorted(self.char, key=lambda tile: tile.value)
+        sortedHand = self.ball + self.stick + self.char + self.jokers + self.declared + self.pairs + self.sets
+
+        if len(self.hand) == len(sortedHand) or len(self.hand) == len(sortedHand)-1:
+            self.hand = sortedHand
+        else:
+            print("Hand != sortedHand on p",self.num)
+            print("len old hand",len(self.hand),self.hand)
+            print("len new hand",len(sortedHand),sortedHand)
+            print("from",self.ball, self.stick, self.char, self.jokers,
+            self.declared, self.pairs, self.sets, sep="\n\t")
+            raise Exception
+
         self._group(self.ball)
         self._group(self.char)
         self._group(self.stick)
+
 
     def _group(self, nonFlores, testOutput=False):
         
@@ -212,15 +259,84 @@ class BasicAI(Player):
         
         if testOutput:
             print("\n\t",self.pairs, "\n")
-    
+
+    def pong(self, tile):
+        sameValues = [j if t.value == tile.value and t.face == tile.face else None for j,t in enumerate(self.pairs)]
+        
+        if len(sameValues) - sameValues.count(None) > 1: # if sameTiles at least 2
+            print("pairs", self.pairs, "\nsameValues", sameValues)
+            sameValues.reverse()
+
+            for i in sameValues[::-1]:
+                if i != None:
+                    self.declared.append( self.pairs.pop(i) )
+            self.declared.append(tile)
+            return True
+        return False
+
+    def chao(self, tile):
+        useSet = super()._setSet(tile)
+        vals = [t.value for t in useSet]
+
+        '''
+        cases
+        new tile finishes front:
+            (1) 2 3
+
+        middle
+            4 (5) 6
+
+        end
+            7 8 (9)
+        '''
+        #midIndex = next((j for j, item in enumerate(useSet) if item.value == tile.value), None) 
+
+        leftIndex = [i for i, j in enumerate(vals) if j == tile.value-1]
+        lMostIndex = [i for i, j in enumerate(vals) if j == tile.value-2]
+        rightIndex = [i for i, j in enumerate(vals) if j == tile.value+1]
+        rMostIndex = [i for i, j in enumerate(vals) if j == tile.value+2]
+        straight = list()
+
+        # pop right to left (preserve indexes), then reverse 
+
+        if leftIndex: 
+            if rightIndex: #chk middle
+                straight.append( useSet.pop(rightIndex.pop()) )
+                straight.append(tile)
+                straight.append( useSet.pop(leftIndex.pop()) )
+
+                straight.reverse()
+                self.declared.extend(straight)
+                return True
+            elif lMostIndex: # chk end
+                straight.append(tile)
+                straight.append( useSet.pop(leftIndex.pop()) )
+                straight.append( useSet.pop(lMostIndex.pop()) )
+
+                straight.reverse()
+                self.declared.extend(straight)
+                return True
+        elif rightIndex:
+            if rMostIndex: # chk front
+                straight.append( useSet.pop(rMostIndex.pop()))
+                straight.append( useSet.pop(rightIndex.pop()))
+                straight.append(tile)
+
+                straight.reverse()
+                self.declared.extend(straight)
+                return True
+
+        return False
+        
 
     def decideAction(self):
         return None
 
+    '''
     def tapon(self):
 
         return None
-
+    #'''
 
 
 if __name__ == "__main__":

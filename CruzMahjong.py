@@ -35,6 +35,7 @@ winning
 '''
 
 import Distribute
+from player import Player, BasicAI
 
 #take from Distribute
 walls = list()
@@ -64,15 +65,22 @@ def _newGame(startRoller):
 
 
 def _generatePlayer(index=0):
+    '''
+    yields the next player to make a choice
+    '''
     while True:
         if index >= len(players):
             index=0
 
-        if len(players[index].hand) > 16:
+        #''' Keep only one
+        yield players[index]
+        '''
+        if len(players[index].hand) == 16:
             yield players[index]
         else:
-            print("I don't think Player",index,"is before the new mano...")
+            print("I don't think Player",index,"is next...")
             raise IndexError
+        '''
 
         index += 1
         
@@ -107,25 +115,50 @@ def main():
     getPlayer = _generatePlayer()
     # where is the early sawi choice?? CHANGEME Δ
 
+    
+    aiCount = 1 #Δ to 3
+    Player.i = 1
+
+    for i in range(aiCount+1): # to ai
+        if i == 0:
+            continue
+        else:
+            players[i] = BasicAI(players[i].hand, players[i].flores)
+
+    # first sort
+    for p in players:
+        p.sortHand(firstSort=True)
+
+
     winner = False
+    mano = next(getPlayer)
     
     while winner is False:
 
         # chk for win
 
         # throw one
-        mano = next(getPlayer)
         tapon = mano.tapon()
+        print("\nmano:", mano)
+        print("tapon:",tapon)
         
         # move counter-clockwise
         # pong intercept, go back to throw one
         if _chkPongable(tapon):
             continue
+        print("\nno pong")
 
         # chao, go back to throw one
-        
+        mano = next(getPlayer)
+        if mano.chao(tapon):
+            continue
+        print("no chow\n")
 
-        # draw+throw
+        # draw + throw(reset loop)
+        if not mano.bunot(walls.pop(0), testOutput=True):
+            while True:
+                if mano.bunot(walls.pop()):
+                    break
         
 
 
