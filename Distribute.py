@@ -34,12 +34,6 @@ winning
 
 '''
 
-import Wall, math, rng
-from player import Player
-from rng import rollDice
-from enum import Enum
-from modular import TileType
-
 #send these over
 walls = list()
 players = list()
@@ -49,6 +43,15 @@ mano = None
 playerCount = 4
 diceCount = 2
 earlySawi = False
+
+
+import Wall, math, rng
+from player import Player
+from rng import rollDice
+from enum import Enum
+from modular import TileType
+
+
 
 class PlayerOrder(Enum):
     __order__ = 'SOUTH EAST NORTH WEST'
@@ -365,7 +368,7 @@ def initMahjong(startRoller=PlayerOrder.SOUTH.value, isQuantum=False, diceCountI
     jokening = _findJoker(testOutput)
     joker = jokening[0]
     players[mano].flores.extend(jokening[1])
-
+    
 
     # verify everything
     if testOutput:

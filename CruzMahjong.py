@@ -35,12 +35,12 @@ winning
 '''
 
 import Distribute
+import player
 from player import Player, BasicAI
 
 #take from Distribute
 walls = list()
 players = list()
-joker = None
 discards = list()
 
 useQuantum = False
@@ -51,15 +51,17 @@ earlySawi = False
 mano = None
 getPlayer = None
 
-def _newGame(startRoller):
-    global walls, players, joker, mano, getPlayer
+def _newGame(startRoller, testJoker=False):
+    global walls, players, mano, getPlayer
 
     # set paraams method? Δ CHANGEME
     
     Distribute.initMahjong(startRoller, useQuantum, diceCount, playerCount)
     walls = Distribute.walls
     players = Distribute.players
-    joker = Distribute.joker
+    if testJoker:
+        print("joker",Distribute.joker)
+    player.joker = Distribute.joker
     mano = Distribute.mano
     getPlayer = _generatePlayer(mano)
 
@@ -85,7 +87,7 @@ def _generatePlayer(index=0):
         index += 1
         
 
-def _chkPongable(tile):
+def _chkPongable(tile, testOutput=False):
     '''
     Lets players pong if they can, starting from the first player clockwise from the mano
 
@@ -96,23 +98,19 @@ def _chkPongable(tile):
     # if start @ 0: 1 -> 2 -> 3 end
     for i in range(playerCount-1):
         player = next(getPlayer)
-        if player.pong(tile):                
+        if player.pong(tile, testOutput):                
             return True
     
-    # no one ponged, make next getPlayer 1
+    # no one ponged, reset getPlayer to 0
     next(getPlayer) # 3 -> 0
 
     return False
 
 def main():
-    global walls, players, joker, discards, mano, getPlayer
+    global walls, players, discards, mano, getPlayer
     
     # VV replace with function above?? CHANGEME Δ 
-    Distribute.initMahjong(0, useQuantum, diceCount, playerCount)
-    walls = Distribute.walls
-    players = Distribute.players
-    joker = Distribute.joker
-    getPlayer = _generatePlayer()
+    _newGame(0, testJoker=True)
     # where is the early sawi choice?? CHANGEME Δ
 
     
@@ -138,13 +136,15 @@ def main():
         # chk for win
 
         # throw one
+        if mano.num == 1:
+            print("\nmano:", mano)
+
         tapon = mano.tapon()
-        print("\nmano:", mano)
-        print("tapon:",tapon)
+        print("P", mano.num, " tapon:",tapon)
         
         # move counter-clockwise
         # pong intercept, go back to throw one
-        if _chkPongable(tapon):
+        if _chkPongable(tapon, True if mano.num == 1 else None):
             continue
         print("\nno pong")
 
@@ -155,11 +155,14 @@ def main():
         print("no chow\n")
 
         # draw + throw(reset loop)
-        if not mano.bunot(walls.pop(0), testOutput=True):
-            while True:
-                if mano.bunot(walls.pop()):
-                    break
-        
+        try:
+            if not mano.bunot(walls.pop(0), True):
+                while True:
+                    if mano.bunot(walls.pop(), True if mano.num == 1 else None):
+                        break
+        except IndexError:
+            print("No winner")
+            
 
 
     # reset, make new game

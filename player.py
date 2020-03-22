@@ -2,8 +2,12 @@
 import modular
 #import Distribute # really jus tfor joker
 
-joker = EnvironmentError
-joker = modular.Tile(1, modular.TileType.BALL.value) # TESTING VV
+'''
+from Distribute import joker
+'''
+#joker = modular.Tile(1, modular.TileType.BALL.value) # why does this not change
+joker = NotImplementedError
+#'''
 
 class Player:
 
@@ -26,7 +30,7 @@ class Player:
     def __str__(self):
         return "P" + str(self.num) + "  " + str(self.hand) + "\tlen " + str(len(self.hand)) + "\nFlores:\t" + str(self.flores) + "\tlen " + str(len(self.flores)) + "\nJoker:\t" + str(self.jokers) + "\tlen " + str(len(self.jokers))
 
-    def _setSet(self, tile):
+    def _setFace(self, tile):
         '''
         return list of tile's face
         '''
@@ -40,32 +44,29 @@ class Player:
 
     def _place(self, tile):
         global joker
-        #print("joker in class::", joker)
 
         if tile.value == modular.TileType.FLORES.value:
             self.flores.append(tile)
             return False
-        # joker not determined... error
         elif tile.face == joker.face and tile.value is joker.value:
             self.jokers.append(tile)
-        elif tile.face == modular.TileType.BALL.value:
-            self.ball.append(tile)
-        elif tile.face == modular.TileType.STICK.value:
-            self.stick.append(tile)
-        elif tile.face == modular.TileType.CHARACTER.value:
-            self.char.append(tile)
+            self.hand.append(tile)
         else:
-            print("\nnot placed..?", tile)
-            raise Exception
+            self._setFace(tile).append(tile)
+            self.hand.append(tile)
+
         return True
 
-    def sortHand(self, firstSort=False):
-        if firstSort:
+    def sortHand(self, firstSort=False, testOutput=False):
+        if firstSort:            
             for tile in self.hand:
                 self._place(tile)
-            print("\nfirst",end="")
+            if testOutput:
+                print("Joker", joker)
+                print("\nfirst",end="")
 
-        print("P" + str(self.num) ,self.ball, self.stick, self.char, self.jokers, sep="\n\t")
+        if testOutput:
+            print("P" + str(self.num) ,self.ball, self.stick, self.char, self.jokers, sep="\n\t")
 
         self.ball = sorted(self.ball, key=lambda tile: tile.value)
         self.stick = sorted(self.stick, key=lambda tile: tile.value)
@@ -73,7 +74,7 @@ class Player:
         sortedHand = self.ball + self.stick + self.char + self.jokers
 
     
-        if len(self.hand) == len(sortedHand) or len(self.hand) == len(sortedHand)-1:
+        if len(self.hand) == len(sortedHand):# or len(self.hand)+1 == len(sortedHand):
             self.hand = sortedHand
         else:
             print("Hand != sortedHand on p",self.num)
@@ -88,12 +89,12 @@ class Player:
         Returns True on a non-flores bunot
         """
         if testOutput:
-            print("bunot", tile)
+            print("P",self.num," bunot", tile)
 
-        if not self._place(tile):
+        if not self._place(tile): #it was flores
             return False
 
-        self.sortHand()
+        self.sortHand(testOutput=True if self.num == 1 and testOutput else None)
         return True
 
     def decideAction(self):
@@ -106,7 +107,9 @@ class Player:
         """
         #'''
         throw = self.hand.pop(0)
+        useSet = self._setFace(throw)
 
+        ''' delet this
         if throw.face == modular.TileType.BALL.value:
             indexOfRemove = [j if t.value == throw.value else None for j,t in enumerate(self.ball)]
             
@@ -129,6 +132,14 @@ class Player:
                 if i is not None:
                     self.char.pop(i)
                     break
+                '''
+        
+        indexOfRemove = [j if t.value == throw.value else None for j,t in enumerate(useSet)]
+            
+        for i in indexOfRemove:
+            if i is not None:
+                useSet.pop(i)
+                break
 
         return throw
         '''
@@ -146,12 +157,12 @@ class Player:
 
         #raise NotImplementedError("Please implement me")
 
-    def pong(self, tile):
+    def pong(self, tile, testOutput=False):
         return False
         #raise NotImplementedError("Please implement me")
         
 
-    def chao(self, tile):
+    def chao(self, tile, testOutput=False):
         #raise NotImplementedError("Please implement me")
         return False
 
@@ -162,36 +173,39 @@ class BasicAI(Player):
         super(self.__class__, self).__init__(*args, **kwargs)
         self.pairs = list()
         self.sets = list()
-        self.almostSets = list()
-        self.rem = list()
+        #self.almostSets = list()
+        #self.rem = list()
 
-    def sortHand(self, firstSort=False):
+    def sortHand(self, firstSort=False, testOutput=False):
         #super(self.__class__, self).sortHand(firstSort)
         if firstSort:
             for tile in self.hand:
                 self._place(tile)
-            print("\nfirst",end="")
+            if testOutput:
+                print("\nfirst",end="")
 
-        print("P" + str(self.num) ,self.ball, self.stick, self.char, self.jokers, sep="\n\t")
+        if testOutput:
+            print("P" + str(self.num) ,self.ball, self.stick, self.char, self.jokers, 
+            self.declared, self.pairs, self.sets, sep="\n\t")
 
         self.ball = sorted(self.ball, key=lambda tile: tile.value)
         self.stick = sorted(self.stick, key=lambda tile: tile.value)
         self.char = sorted(self.char, key=lambda tile: tile.value)
         sortedHand = self.ball + self.stick + self.char + self.jokers + self.declared + self.pairs + self.sets
 
-        if len(self.hand) == len(sortedHand) or len(self.hand) == len(sortedHand)-1:
+        if len(self.hand) == len(sortedHand):# or len(self.hand)+1 == len(sortedHand):
             self.hand = sortedHand
         else:
-            print("Hand != sortedHand on p",self.num)
+            print("\nHand != sortedHand on p",self.num)
             print("len old hand",len(self.hand),self.hand)
             print("len new hand",len(sortedHand),sortedHand)
             print("from",self.ball, self.stick, self.char, self.jokers,
             self.declared, self.pairs, self.sets, sep="\n\t")
             raise Exception
 
-        self._group(self.ball)
-        self._group(self.char)
-        self._group(self.stick)
+        self._group(self.ball, testOutput)
+        self._group(self.char, testOutput)
+        self._group(self.stick, testOutput)
 
 
     def _group(self, nonFlores, testOutput=False):
@@ -219,7 +233,7 @@ class BasicAI(Player):
             endIndex = next((j for j, item in enumerate(nonFlores[i+2:]) if item.value == tile.value+2), None) 
 
             if testOutput:
-                print(midIndex+i, endIndex, end="\n")
+                print(midIndex+i if midIndex is not None else None, endIndex, end="\n")
 
             if endIndex is not None and midIndex is not None:
                 tempset = list()
@@ -239,14 +253,17 @@ class BasicAI(Player):
         #'''
         if testOutput:
             print("\nPairs",nonFlores)
-        #for i, tile in enumerate(nonFlores):
+            
         i=0
-        #for tile in iter(nonFlores):
+        
         while i < len(nonFlores):
             tile = nonFlores[i]
             if testOutput:
                 print("@",tile,end="\t\t")
+
+            # index-1 of relative to current tile
             sameValues = [j if t.value == tile.value else None for j,t in enumerate(nonFlores[i+1:])]
+            print(end="")
 
             if any(x != None for x in sameValues):
                 self.pairs.append( nonFlores.pop(i) )
@@ -258,24 +275,26 @@ class BasicAI(Player):
                 i += 1
         
         if testOutput:
-            print("\n\t",self.pairs, "\n")
+            print("\n\tPairs now ->",self.pairs, "\n")
 
-    def pong(self, tile):
+    def pong(self, tile, testOutput=False):
         sameValues = [j if t.value == tile.value and t.face == tile.face else None for j,t in enumerate(self.pairs)]
         
         if len(sameValues) - sameValues.count(None) > 1: # if sameTiles at least 2
-            print("pairs", self.pairs, "\nsameValues", sameValues)
-            sameValues.reverse()
+
+            if testOutput:
+                print("pairs", self.pairs, "\nsameValues", sameValues)
 
             for i in sameValues[::-1]:
                 if i != None:
                     self.declared.append( self.pairs.pop(i) )
             self.declared.append(tile)
             return True
+
         return False
 
     def chao(self, tile):
-        useSet = super()._setSet(tile)
+        useSet = super()._setFace(tile)
         vals = [t.value for t in useSet]
 
         '''
