@@ -60,7 +60,7 @@ def _newGame(startRoller, testJoker=False):
     walls = Distribute.walls
     players = Distribute.players
     if testJoker:
-        print("joker",Distribute.joker)
+        print("joker dist",Distribute.joker, "  player", player.joker)
     player.joker = Distribute.joker
     mano = Distribute.mano
     getPlayer = _generatePlayer(mano)
@@ -73,16 +73,8 @@ def _generatePlayer(index=0):
     while True:
         if index >= len(players):
             index=0
-
-        #''' Keep only one
+        
         yield players[index]
-        '''
-        if len(players[index].hand) == 16:
-            yield players[index]
-        else:
-            print("I don't think Player",index,"is next...")
-            raise IndexError
-        '''
 
         index += 1
         
@@ -93,13 +85,33 @@ def _chkPongable(tile, testOutput=False):
 
     If someone does pong, automatically update so that the next getPlayer will be the new mano
     '''
-    global getPlayer
+    global getPlayer, mano
 
-    # if start @ 0: 1 -> 2 -> 3 end
+    player = mano # 3
+
+    #if testOutput:
+    print("try pong", end=" ")
+
+    # 3 tapon,
+    # start @ 0: 1 -> 2 end 
+    #
+    # outdated 
+    # -> 3 end
     for i in range(playerCount-1):
-        player = next(getPlayer)
-        if player.pong(tile, testOutput):                
+        #if testOutput:
+        print(player.num, end=" ")
+
+        if player.pong(tile, testOutput):
+            mano = player
             return True
+
+        player = next(getPlayer)
+        # 0 -> 1
+        # 1 -> 2
+        # 2 -> 3
+
+
+    print()
     
     # no one ponged, reset getPlayer to 0
     next(getPlayer) # 3 -> 0
@@ -109,7 +121,6 @@ def _chkPongable(tile, testOutput=False):
 def main():
     global walls, players, discards, mano, getPlayer
     
-    # VV replace with function above?? CHANGEME Δ 
     _newGame(0, testJoker=True)
     # where is the early sawi choice?? CHANGEME Δ
 
@@ -117,7 +128,7 @@ def main():
     aiCount = 1 #Δ to 3
     Player.i = 1
 
-    for i in range(aiCount+1): # to ai
+    for i in range(aiCount+1): # player to ai
         if i == 0:
             continue
         else:
@@ -129,7 +140,7 @@ def main():
 
 
     winner = False
-    mano = next(getPlayer)
+    mano = next(getPlayer) 
     
     while winner is False:
 
@@ -141,27 +152,34 @@ def main():
 
         tapon = mano.tapon()
         print("P", mano.num, " tapon:",tapon)
+
+        mano = next(getPlayer) # 2 -> 3
         
         # move counter-clockwise
         # pong intercept, go back to throw one
         if _chkPongable(tapon, True if mano.num == 1 else None):
+            print("\nPONG! P", mano.num)
             continue
         print("\nno pong")
 
         # chao, go back to throw one
-        mano = next(getPlayer)
         if mano.chao(tapon):
+            print("\nCHAO! p", mano.num)
             continue
         print("no chow\n")
 
+
+        discards.append(tapon)
+
         # draw + throw(reset loop)
         try:
-            if not mano.bunot(walls.pop(0), True):
-                while True:
+            if not mano.bunot(walls.pop(0), True): #reg bunot
+                while True: #flores bunot
                     if mano.bunot(walls.pop(), True if mano.num == 1 else None):
                         break
         except IndexError:
             print("No winner")
+            break
             
 
 

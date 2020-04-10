@@ -34,23 +34,24 @@ winning
 
 '''
 
+
+import Wall, math, rng
+from player import Player, joker
+from rng import rollDice
+from enum import Enum
+from modular import TileType
+
+
 #send these over
 walls = list()
 players = list()
 joker = None
 mano = None
+isDoublePay = False
 
 playerCount = 4
 diceCount = 2
 earlySawi = False
-
-
-import Wall, math, rng
-from player import Player
-from rng import rollDice
-from enum import Enum
-from modular import TileType
-
 
 
 class PlayerOrder(Enum):
@@ -63,6 +64,8 @@ class PlayerOrder(Enum):
 
 
 def _findMano(startRoller=PlayerOrder.SOUTH.value, testOutput=False):
+
+    global isDoublePay
         
     if(testOutput):
         print("Starting Player:", startRoller)
@@ -71,6 +74,7 @@ def _findMano(startRoller=PlayerOrder.SOUTH.value, testOutput=False):
     sum = 0
     for d in dice:
         sum += d
+    isDoublePay = len(set(dice)) == 1
 
     if(testOutput):
         for d in dice:
@@ -207,21 +211,40 @@ def _firstDistrb(testOutput=False):
     '''
     global walls
 
+    if testOutput:
+        print("begin distrib")
+
     hands = [(list(), list()) for j in range(playerCount)]
 
-    for i in range(playerCount): # first deal
+    #for i in range(playerCount): # first deal
+    i=mano
+    count=0
+    while count < playerCount:
         hands[i][0].extend(walls[:8])
         walls = walls[8:]
+
+        i += 1
+        count += 1
+        if i == playerCount:
+            i=0
 
     if earlySawi:
-        hands[0][0].append(walls.pop(0))
+        hands[mano][0].append(walls.pop(0))
 
-    for i in range(playerCount): # second deal
+    #for i in range(playerCount): # second deal
+    i=mano
+    count=0
+    while count < playerCount:
         hands[i][0].extend(walls[:8])
         walls = walls[8:]
 
+        i += 1
+        count += 1
+        if i == playerCount:
+            i=0
+
     if not earlySawi:
-        hands[0][0].append(walls.pop(0))
+        hands[mano][0].append(walls.pop(0))
 
 
     if testOutput:
@@ -299,6 +322,9 @@ def _distrbAllFlores(testOutput=False):
 
 
 def _findJoker(testOutput=False):
+    """
+    returns a tuple of (joker, flores to add to mano)
+    """
     global walls
     nonJokers = list()
 
@@ -307,11 +333,11 @@ def _findJoker(testOutput=False):
 
     # check if flores starts on bottom or top
     result = result * 2 - 1
-    joker = walls.pop(result)
+    joker = walls.pop( len(walls) - result)
 
     if joker.value is TileType.FLORES.value:
         nonJokers.append(joker)
-        joker = walls.pop(result)
+        joker = walls.pop( len(walls) - result)
 
         # joker can't be flores
         if joker.value is TileType.FLORES.value:
@@ -368,7 +394,7 @@ def initMahjong(startRoller=PlayerOrder.SOUTH.value, isQuantum=False, diceCountI
     jokening = _findJoker(testOutput)
     joker = jokening[0]
     players[mano].flores.extend(jokening[1])
-    
+
 
     # verify everything
     if testOutput:
@@ -384,6 +410,8 @@ def initMahjong(startRoller=PlayerOrder.SOUTH.value, isQuantum=False, diceCountI
             for flores in p.flores:
                 print(flores, end="\t\t")
             print()
+
+        print("\n mano is", mano)
 
     return players
 
