@@ -7,6 +7,7 @@ from Distribute import joker
 '''
 #joker = modular.Tile(1, modular.TileType.BALL.value) 
 joker = AttributeError # why does this not change, see #93 GH
+discards = list()
 #'''
 
 class Player:
@@ -119,14 +120,14 @@ class Player:
         remove a tile from hand and return it
         """
         #'''
-        throw = self.hand.pop(0)
-        useSet = self._setFace(throw)
+        throw = self.hand.pop(0) # causes errors thrown from pair/set FIXME CHANGEME
+        useFace = self._setFace(throw)
         
-        indexOfRemove = [j if t.value == throw.value else None for j,t in enumerate(useSet)]
+        indexOfRemove = [j if t.value == throw.value else None for j,t in enumerate(useFace)]
             
         for i in indexOfRemove:
             if i is not None:
-                useSet.pop(i)
+                useFace.pop(i)
                 break
 
         return throw
@@ -168,6 +169,7 @@ class BasicAI(Player):
 
         if testOutput:
             print("\npairs b4 group", self.pairs)
+            
 
         self._group(self.ball, testOutput)
         self._group(self.char, testOutput)
@@ -176,7 +178,7 @@ class BasicAI(Player):
         if testOutput:
             print("\npairs after group", self.pairs)
 
-        sortedHand = self.ball + self.stick + self.char + self.jokers + self.pairs + self.sets
+        sortedHand = self.ball + self.stick + self.char + self.jokers + self.pairs + self.sets 
 
         if len(sortedHand) == 15:
             print("wy ->", sortedHand)
@@ -264,35 +266,54 @@ class BasicAI(Player):
         if testOutput:
             print("\n\tPairs now ->",self.pairs, "\n")
 
+        def tapon(self):
+            """
+            Given a 17-long (18 on a kang with regular win)
+            remove a tile from hand and return it
+            """
+            #'''
+            throw = self.hand.pop(0) # causes errors thrown from pair/set FIXME CHANGEME
+            useFace = self._setFace(throw)
+            
+            indexOfRemove = [j if t.value == throw.value else None for j,t in enumerate(useFace)]
+                
+            for i in indexOfRemove:
+                if i is not None:
+                    useFace.pop(i)
+                    break
+
+            return throw
+
     def pong(self, tile, testOutput=False):
         sameValues = [j if t.value == tile.value and t.face == tile.face else None for j,t in enumerate(self.pairs)]
         
-        if len(sameValues) - sameValues.count(None) > 1: # if sameTiles at least 2
+        if len(self.pairs)/2 < 4:
+            if len(sameValues) - sameValues.count(None) > 1: # if sameTiles at least 2
 
-            if testOutput:
-                print("pairs", self.pairs, "\nsameValues", sameValues)
+                if testOutput:
+                    print("pairs", self.pairs, "\nsameValues", sameValues)
 
-            for i in sameValues[::-1]:
-                if i != None:
-                    self.declared.append( self.pairs.pop(i) )
-            self.declared.append(tile)
-            
-            # remove from hand
-            face = self._setFace(tile)
-            indexInFace = [j if t.value == tile.value else None for j,t in enumerate(face)]
-                    
-            for i in indexInFace[::-1]: 
-                if i != None:
-                    face.pop(i)
-            
-            self.sortHand()
-            return True
+                for i in sameValues[::-1]:
+                    if i != None:
+                        self.declared.append( self.pairs.pop(i) )
+                self.declared.append(tile)
+                
+                # remove from hand
+                face = self._setFace(tile)
+                indexInFace = [j if t.value == tile.value else None for j,t in enumerate(face)]
+                        
+                for i in indexInFace[::-1]: 
+                    if i != None:
+                        face.pop(i)
+                
+                self.sortHand()
+                return True
 
         return False
 
     def chao(self, tile):
-        useSet = super()._setFace(tile)
-        vals = [t.value for t in useSet]
+        useFace = super()._setFace(tile)
+        vals = [t.value for t in useFace]
 
         '''
         cases
@@ -305,7 +326,7 @@ class BasicAI(Player):
         end
             7 8 (9)
         '''
-        #midIndex = next((j for j, item in enumerate(useSet) if item.value == tile.value), None) 
+        #midIndex = next((j for j, item in enumerate(useFace) if item.value == tile.value), None) 
 
         leftIndex = [i for i, j in enumerate(vals) if j == tile.value-1]
         lMostIndex = [i for i, j in enumerate(vals) if j == tile.value-2]
@@ -317,8 +338,8 @@ class BasicAI(Player):
 
         if leftIndex: 
             if rightIndex: #chk middle
-                six = useSet.pop(rightIndex.pop())
-                four = useSet.pop(leftIndex.pop())
+                six = useFace.pop(rightIndex.pop())
+                four = useFace.pop(leftIndex.pop())
 
                 straight.append( four )
                 straight.append(tile)
@@ -330,8 +351,8 @@ class BasicAI(Player):
                 return True
 
             elif lMostIndex: # chk end
-                eight = useSet.pop(leftIndex.pop())
-                seven = useSet.pop(lMostIndex.pop())
+                eight = useFace.pop(leftIndex.pop())
+                seven = useFace.pop(lMostIndex.pop())
 
                 straight.append( seven )
                 straight.append( eight )
@@ -344,8 +365,8 @@ class BasicAI(Player):
 
         elif rightIndex:
             if rMostIndex: # chk front
-                three = useSet.pop(rMostIndex.pop())
-                two = useSet.pop(rightIndex.pop())
+                three = useFace.pop(rMostIndex.pop())
+                two = useFace.pop(rightIndex.pop())
 
                 straight.append(tile)
                 straight.append(two)

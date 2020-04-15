@@ -36,23 +36,28 @@ winning
 
 import Distribute
 import player
-from player import Player, BasicAI
+from player import Player, BasicAI, discards
 
 #take from Distribute
 walls = list()
 players = list()
-discards = list()
 
 useQuantum = False
 playerCount = 4
 diceCount = 2
 earlySawi = False
 
-mano = None
-getPlayer = None
+mano = AttributeError
+getPlayer = AttributeError
 
 def _newGame(startRoller, testJoker=False):
     global walls, players, mano, getPlayer
+
+    if not players:
+        money = [1000] * playerCount
+    else:
+        for i, p in enumerate(players):
+            money[i] = p.money
 
     # set paraams method? Δ CHANGEME
     
@@ -64,6 +69,20 @@ def _newGame(startRoller, testJoker=False):
     player.joker = Distribute.joker
     mano = Distribute.mano
     getPlayer = _generatePlayer(mano)
+
+    for i, p in enumerate(players):
+        p.money = money[i]
+
+    # regenerate discards
+    import modular
+    discards = dict()
+
+    for t in modular.TileType:
+        if t is modular.TileType.FLORES:
+            continue
+        else:
+            for n in range(1,10):
+                discards[modular.Tile(n, t.value)] = 0
 
 
 def _generatePlayer(index=0):
@@ -87,7 +106,7 @@ def _chkPongable(tile, testOutput=False):
     '''
     global getPlayer, mano
 
-    player = mano # 3
+    player = mano # if 3
 
     #if testOutput:
     print("try pong", end=" ")
@@ -118,15 +137,21 @@ def _chkPongable(tile, testOutput=False):
 
     return False
 
-def main():
+def main(testOutput = False):
     global walls, players, discards, mano, getPlayer
     
     _newGame(0, testJoker=True)
     # where is the early sawi choice?? CHANGEME Δ
 
-    
+    if testOutput:
+        print("discards", discards)
+
+    #'''
+    aiCount = 3
+    '''
     aiCount = 1 #Δ to 3
-    Player.i = 1
+    #Player.i = 1
+    #'''
 
     for i in range(aiCount+1): # player to ai
         if i == 0:
@@ -170,6 +195,7 @@ def main():
 
 
         discards.append(tapon)
+        print(player.discards)
 
         # draw + throw(reset loop)
         try:
@@ -185,6 +211,41 @@ def main():
 
     # reset, make new game
 
+
+def testDict():
+    dictionary = dict()
+    import Wall
+
+    tiel = Wall.Tile(9, "Ball")
+
+    for t in Wall.TileType:
+        if t is Wall.TileType.FLORES:
+            continue
+        for n in range(1,10):
+            tile = Wall.Tile(n, t.value)
+            dictionary[tile] = 0
+
+            '''
+            if n == tiel.value and t.value == tiel.face:
+                print(tiel == tile)
+            if tile.value == tiel.value and tile.face == tiel.face: 
+                t1 = (tiel.value, tiel.face)
+                t2 = (tile.value, tile.face)
+                print(t1, t2, t1 == t2)
+                print(tile.__eq__(tiel)) # WHAAAAAAAAAT
+            '''
+
+    print(dictionary, len(dictionary))
+
+
+    tiel = Wall.Tile(9, Wall.TileType.BALL.value)
+    dictionary[tiel] = dictionary.get(tiel, 0) + 1
+
+    print(dictionary, len(dictionary))
+
+    return
+
 # begin main
 if __name__ == "__main__":
-    main()
+    main(True)
+    #testDict()
