@@ -71,7 +71,7 @@ class Tile:
 
 
     def __str__(self):
-        return str(self.value) + "\t" + str(self.face)
+        return str(self.value) + " " + str(self.face)
 
     def __repr__(self):
         #'''

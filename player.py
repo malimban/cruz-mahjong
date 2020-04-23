@@ -8,6 +8,7 @@ from Distribute import joker
 #joker = modular.Tile(1, modular.TileType.BALL.value) 
 joker = AttributeError # why does this not change, see #93 GH
 discards = list()
+declareds = list()
 #'''
 
 class Player:
@@ -25,13 +26,13 @@ class Player:
         self.jokers = list()
 
         self.declared = list()
-        self.kang = list()
+        #self.kang = list()
 
         self.num = Player.i
         Player.i += 1
 
     def __str__(self):
-        return "P" + str(self.num) + "  " + str(self.hand) + "\tlen " + str(len(self.hand)) + ", "  + str(self.declared)        +''' "\nFlores:\t" + str(self.flores) + "\tlen " + str(len(self.flores)) +''' "\nJoker:\t" + str(self.jokers) + "\tlen " + str(len(self.jokers))
+        return "P" + str(self.num) + "  " + str(self.hand) + "\tlen " + str(len(self.hand)) + ", "  + str(self.declared) + "\nFlores:\t" + str(self.flores) + "\tlen " + str(len(self.flores)) + "\nJoker:\t" + str(self.jokers) + "\tlen " + str(len(self.jokers)) + "\n"
 
     def _setFace(self, tile):
         '''
@@ -95,20 +96,22 @@ class Player:
         if testOutput:
             print("P",self.num," bunot", tile)
 
+        # properly append if applicable
         if not self._place(tile): #it was flores
             return False
 
-        # tile in proper face, put it in hand
+
+        # tile in proper face, put it in hand for display purposes
 
         if testOutput:
             print("\nhand b4", self.hand, len(self.hand), self.declared)
 
-        self.hand.append(tile) # 17CHANGEME REMOVEME
+        self.hand.append(tile)
 
         if testOutput:
             print("\nhand now", self.hand, len(self.hand), self.declared)
 
-        self.sortHand(testOutput=True if self.num == 1 and testOutput else None)
+        self.sortHand(testOutput=testOutput)
         return True
 
     def decideAction(self):
@@ -120,7 +123,17 @@ class Player:
         remove a tile from hand and return it
         """
         #'''
-        throw = self.hand.pop(0) # causes errors thrown from pair/set FIXME CHANGEME
+
+        for i, t in enumerate(self.hand): # display throwable
+            print(i,":",t)
+
+        throw = AttributeError
+        while True:
+            throwIndex = int(input("Throw what?\n> "))
+            if throwIndex < len(self.hand):
+                throw = self.hand[throwIndex]
+                break
+        
         useFace = self._setFace(throw)
         
         indexOfRemove = [j if t.value == throw.value else None for j,t in enumerate(useFace)]
@@ -133,13 +146,68 @@ class Player:
         return throw
 
     def pong(self, tile, testOutput=False):
-        return False
-        #raise NotImplementedError("Please implement me")
-        
+        tface = self._setFace(tile)
+
+        sameValues = [j if t.value == tile.value else None for j,t in enumerate(tface)]
+
+        if len(sameValues) - sameValues.count(None) > 1: # at least 2 ; can pong
+
+            if len(sameValues) - sameValues.count(None) > 2: # kang
+                print("no kang yet")
+                raise NotImplementedError
+
+            while True:
+                print(self.hand)
+                choice = input("Pong " + str(tile) + "?\n(y)es or (n)o\n> ")
+                if choice == "y":
+                    for i in sameValues[::-1]:
+                        self.declared.append( tface.pop(i) )
+                    self.declared.append(tile)
+
+                    return True
+                elif choice == "n":
+                    return False
+
+        else: #can't pong
+            return False
 
     def chao(self, tile, testOutput=False):
-        #raise NotImplementedError("Please implement me")
+        tface = self._setFace(tile)
+        print(tface)
+        choice = input("Chao " + str(tile) + "?\n(y)es or (n)o\n> ")
+        if choice == "y":
+            while True:
+                for i, t in enumerate(tface):
+                    print(i,":",t)
+                    
+                # get two tiles from tface
+                chao1 = int(input("First tile index: "))
+                chao2 = int(input("Second tile index: "))
+
+                if chao2 < chao1:
+                    temp = chao1
+                    chao1 = chao2
+                    chao2 = temp
+
+                # chk if valid straight
+                tempChao = [tface[chao1], tface[chao2], tile]
+                tempChao = sorted(tempChao, key=lambda tile: tile.value)
+
+                if tempChao[0].value + 1 == tempChao[1].value and tempChao[1].value + 1 == tempChao[2].value:
+                    # valid
+                    tface.pop(chao2)
+                    tface.pop(chao1)
+
+                    self.declared.extend(tempChao)
+
+                    return True
+                
+                # reset loop
+                if input("Not a straight. (q)uit chao?\n> ") == "q":
+                    break
+
         return False
+        
 
     
 class BasicAI(Player):
@@ -158,6 +226,9 @@ class BasicAI(Player):
                 self._place(tile)
             if testOutput:
                 print("\nfirst",end="")
+        else:
+            #ΔCHANGEME chk for seven pairs first
+            self._resetPairs(testOutput)
 
         if testOutput:
             print("P" + str(self.num) ,self.ball, self.stick, self.char, self.jokers, 
@@ -169,7 +240,6 @@ class BasicAI(Player):
 
         if testOutput:
             print("\npairs b4 group", self.pairs)
-            
 
         self._group(self.ball, testOutput)
         self._group(self.char, testOutput)
@@ -198,17 +268,19 @@ class BasicAI(Player):
             raise Exception
 
 
-    def _group(self, nonFlores, testOutput=False):
-        
-        #'''
+    def _group(self, nonFlores, firstSort=False, testOutput=False):
+        # ΔCHANGEME action based on 7 pairs
         if nonFlores:
             self._makeStraight(nonFlores, testOutput)
             self._makePairs(nonFlores, testOutput)
-        '''
 
-        #'''
+    def _resetPairs(self, testOutput):
+        for i in range(len(self.pairs)):
+            tile = self.pairs.pop()
+            self._setFace(tile).append(tile)
 
-    def _makeStraight(self, nonFlores, testOutput=False):    
+    def _makeStraight(self, nonFlores, testOutput=False): 
+
         if testOutput:
             print("\nchk 4 straight",nonFlores)
 
@@ -222,6 +294,10 @@ class BasicAI(Player):
             midIndex = next((j for j, item in enumerate(nonFlores[i+1:]) if item.value == tile.value+1), None)
             endIndex = next((j for j, item in enumerate(nonFlores[i+2:]) if item.value == tile.value+2), None) 
 
+            # ΔCHANGEME may need this when checking lists of mixed suits
+            #midIndex = next((j for j, item in enumerate(nonFlores[i+1:]) if item.value == tile.value+1 and item.face == tile.face), None)
+            #endIndex = next((j for j, item in enumerate(nonFlores[i+2:]) if item.value == tile.value+2 and item.face == tile.face), None) 
+
             if testOutput:
                 print(midIndex+i if midIndex is not None else None, endIndex, end="\n")
 
@@ -232,12 +308,13 @@ class BasicAI(Player):
                 tempset.append( nonFlores.pop(i) )
                 tempset.reverse()
                 self.sets.extend(tempset)
+                
             else:
                 i += 1
 
         if testOutput:
             print("\n\tsets now ->",self.sets, "\n")
-           
+        
 
     def _makePairs(self, nonFlores, testOutput=False):
         #'''
@@ -289,6 +366,9 @@ class BasicAI(Player):
         
         if len(self.pairs)/2 < 4:
             if len(sameValues) - sameValues.count(None) > 1: # if sameTiles at least 2
+                if len(sameValues) - sameValues.count(None) > 2: #kang
+                    print("kang not implemented..")
+                    raise NotImplementedError
 
                 if testOutput:
                     print("pairs", self.pairs, "\nsameValues", sameValues)
@@ -310,6 +390,35 @@ class BasicAI(Player):
                 return True
 
         return False
+
+    def _sharedChao(self, tile):
+        '''
+        returns True if shared chao potential results in 2 sets
+        call after chao and bunot
+        '''
+        useFace = super()._setFace(tile)
+        oldFace = useFace.copy()
+        oldSets = [t for t in self.sets if t.face == tile.face]
+        otherSets = [t for t in self.sets if t.face != tile.face]
+        useable = oldSets + [tile] + useFace
+
+        # sort , create set, and test
+        useable = sorted(useable, key=lambda tile: tile.value)
+
+        # dangerous, reformats suit, sets, and adds the tile if applicable
+        self._makeStraight(useable)
+
+        if len(self.sets) / 3 == len(oldSets)+len(otherSets) / 3 + 1: # new set found
+            # ΔCHANGEME how to set the declared if chao
+
+            # mb just remove oldsets and call from chao
+
+            return True
+
+        else:
+            self.sets = oldSets + otherSets
+            useFace = oldFace
+            return False
 
     def chao(self, tile):
         useFace = super()._setFace(tile)
@@ -378,16 +487,87 @@ class BasicAI(Player):
                 return True
 
         return False
-        
 
-    def decideAction(self):
-        return None
+    
+    # def tapon(self):
+    #     '''
+    #     Prioritize making sets
+    #     Make pairs
 
-    '''
-    def tapon(self):
+    #     From loose tiles:
+    #         Throw what is already discarded/declared
+    #             less likely to form pairs
 
-        return None
-    #'''
+    #         Throw what is furthest from your current cards
+    #             e.g. given [4 5 6], throw 1 instead of 8
+
+    #     Else, from loose, throw randomly
+
+    #     '''
+
+    #     return None
+
+    def todas(self, testOutput=False):
+
+        # assuming 5 sets, 1 pair
+        hasPair = len(self.pairs)/2 == 1
+
+        if not self.stick and not self.ball and not self.char:
+
+            # assuming 5 sets, 1 pair
+            if len(self.sets) / 3 == 5 and hasPair:  # 5 straights
+                return True
+
+        # joker test, assuming one
+        remJokers = len(joker)
+
+        # needs pair, len(nonFlores == odd)
+        # needs straight len(nonFlores == even)
+
+        for nonFlores in [self.ball, self.char, self.stick]:
+            if nonFlores: # items exist
+                usedJokers = self._jokersUsed(nonFlores, hasPair)
+                if usedJokers < 1: # set not found
+                    return False
+                remJokers -= usedJokers
+
+        if remJokers != 0: # all jokers sucessfully used
+            return False
+        else:
+            return True
+    
+    def _jokersUsed(self, nonFlores, hasPair):
+        '''
+        Returns jokers used for valid set
+        '''
+
+        if len(nonFlores) == 1: # joker need for pair
+            if hasPair: # but we already have a pair
+                # assume need a set
+                return 2
+            else:
+                return 1
+                
+
+        usedJokers = 0
+        j = 0
+        while j < len(nonFlores):
+            difference = [t.value - nonFlores[j].value for t in nonFlores[j+1:]]
+
+            if difference[0] < 3: # max difference 2, can make set
+                usedJokers += 1
+                j += 2
+
+            else: # diff greater than 3, set not viable
+                if hasPair: # must be a set
+                    usedJokers += 2
+                    j += 2
+                else: # must be a pair
+                    usedJokers += 1
+                    j += 1
+
+        return usedJokers
+
 
 
 if __name__ == "__main__":

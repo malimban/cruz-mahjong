@@ -36,7 +36,7 @@ winning
 
 import Distribute
 import player
-from player import Player, BasicAI, discards
+from player import Player, BasicAI, discards, declareds
 
 #take from Distribute
 walls = list()
@@ -73,6 +73,8 @@ def _newGame(startRoller, testJoker=False):
     for i, p in enumerate(players):
         p.money = money[i]
 
+    print("First mano:", mano)
+
     # regenerate discards
     import modular
     discards = dict()
@@ -83,6 +85,9 @@ def _newGame(startRoller, testJoker=False):
         else:
             for n in range(1,10):
                 discards[modular.Tile(n, t.value)] = 0
+
+    import copy
+    declareds = copy.deepcopy(discards)
 
 
 def _generatePlayer(index=0):
@@ -140,24 +145,29 @@ def _chkPongable(tile, testOutput=False):
 def main(testOutput = False):
     global walls, players, discards, mano, getPlayer
     
-    _newGame(0, testJoker=True)
+    _newGame(0, testJoker=testOutput)
     # where is the early sawi choice?? CHANGEME Δ
 
     if testOutput:
         print("discards", discards)
 
+    # ΔCHANGEME  vvv TO AI
+
     #'''
     aiCount = 3
     '''
     aiCount = 1 #Δ to 3
-    #Player.i = 1
     #'''
 
+
+    Player.i = 1
     for i in range(aiCount+1): # player to ai
         if i == 0:
             continue
         else:
             players[i] = BasicAI(players[i].hand, players[i].flores)
+
+    # ΔCHANGEME  ^^^ TO AI
 
     # first sort
     for p in players:
@@ -166,6 +176,8 @@ def main(testOutput = False):
 
     winner = False
     mano = next(getPlayer) 
+
+    # end setup
     
     while winner is False:
 
@@ -195,7 +207,8 @@ def main(testOutput = False):
 
 
         discards.append(tapon)
-        print(player.discards)
+        print("Discards", player.discards)
+        print()
 
         # draw + throw(reset loop)
         try:
