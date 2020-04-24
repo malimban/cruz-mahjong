@@ -71,7 +71,7 @@ if **flores**
 
 *it is possible to win from a* ***bunot***
 
-You are **mano** if you have 17 tiles
+You are **tira** if you have 17 tiles
 
 Typically, just throw, or **tapon** a tile. 
 
