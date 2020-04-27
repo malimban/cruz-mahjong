@@ -57,19 +57,6 @@ class Tile:
         self.value = value
         self.face = face
 
-    # obliged https://stackoverflow.com/questions/4901815/object-of-custom-type-as-dictionary-key
-    def __hash__(self):
-        return hash((self.value, self.face))
-
-    def __eq__(self, other):
-        return (self.value, self.face) == (other.value, other.face)
-
-    def __ne__(self, other):
-        # Not strictly necessary, but to avoid having both x==y and x!=y
-        # True at the same time
-        return not(self == other)
-
-
     def __str__(self):
         return str(self.value) + " " + str(self.face)
 
@@ -79,3 +66,15 @@ class Tile:
         '''
         return "\t" + str(self.value) + " " + str(self.face)
         #'''
+
+    # for custom dictionary key
+    def __hash__(self):
+        return hash((self.value, self.face))
+
+    def __eq__(self, other):
+        return (self.value, self.face) == (other.value, other.face)
+
+    def __ne__(self, other):
+        return not(self == other)
+
+    

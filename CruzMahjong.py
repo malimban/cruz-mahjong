@@ -36,12 +36,13 @@ winning
 
 import Distribute
 import player
-from player import Player, BasicAI, discards, declareds
+from player import Player, BasicAI, discardsDict, declareds
 
 #take from Distribute
 walls = list()
 players = list()
 
+#send to Distribute
 useQuantum = False
 playerCount = 4
 diceCount = 2
@@ -49,6 +50,7 @@ earlySawi = False
 
 mano = AttributeError
 getPlayer = AttributeError
+discards = list()
 
 def _newGame(startRoller, testJoker=False):
     global walls, players, mano, getPlayer
@@ -77,17 +79,17 @@ def _newGame(startRoller, testJoker=False):
 
     # regenerate discards
     import modular
-    discards = dict()
+    discards = list()
+    discardsDict = dict()
 
     for t in modular.TileType:
         if t is modular.TileType.FLORES:
             continue
         else:
             for n in range(1,10):
-                discards[modular.Tile(n, t.value)] = 0
+                discardsDict[modular.Tile(n, t.value)] = 0
 
-    import copy
-    declareds = copy.deepcopy(discards)
+    declareds = discardsDict.copy()
 
 
 def _generatePlayer(index=0):
@@ -151,28 +153,19 @@ def main(testOutput = False):
     if testOutput:
         print("discards", discards)
 
-    # ΔCHANGEME  vvv TO AI
-
-    #'''
+    
     aiCount = 3
-    '''
-    aiCount = 1 #Δ to 3
-    #'''
 
-
-    Player.i = 1
+    Player.i = len(players) - aiCount
     for i in range(aiCount+1): # player to ai
         if i == 0:
             continue
         else:
             players[i] = BasicAI(players[i].hand, players[i].flores)
 
-    # ΔCHANGEME  ^^^ TO AI
-
     # first sort
     for p in players:
         p.sortHand(firstSort=True)
-
 
     winner = False
     mano = next(getPlayer) 
@@ -182,19 +175,26 @@ def main(testOutput = False):
     while winner is False:
 
         # chk for win
+        if mano.todas():
+            print("Player",mano.num,"wins")
+            print(mano)
+            break
 
         # throw one
-        if mano.num == 1:
-            print("\nmano:", mano)
+        print("Discards", discards)
+        print()
 
         tapon = mano.tapon()
+        if tapon is None:
+            tapon = mano.randTapon()
+
         print("P", mano.num, " tapon:",tapon)
 
         mano = next(getPlayer) # 2 -> 3
         
         # move counter-clockwise
         # pong intercept, go back to throw one
-        if _chkPongable(tapon, True if mano.num == 1 else None):
+        if _chkPongable(tapon):
             print("\nPONG! P", mano.num)
             continue
         print("\nno pong")
@@ -207,14 +207,12 @@ def main(testOutput = False):
 
 
         discards.append(tapon)
-        print("Discards", player.discards)
-        print()
 
         # draw + throw(reset loop)
         try:
-            if not mano.bunot(walls.pop(0), True): #reg bunot
+            if not mano.bunot(walls.pop(0)): #reg bunot
                 while True: #flores bunot
-                    if mano.bunot(walls.pop(), True if mano.num == 1 else None):
+                    if mano.bunot(walls.pop()):
                         break
         except IndexError:
             print("No winner")
@@ -241,7 +239,7 @@ def testDict():
             '''
             if n == tiel.value and t.value == tiel.face:
                 print(tiel == tile)
-            if tile.value == tiel.value and tile.face == tiel.face: 
+            if tile.value == tiel.value and tile.face == tiel.fa1ce: 
                 t1 = (tiel.value, tiel.face)
                 t2 = (tile.value, tile.face)
                 print(t1, t2, t1 == t2)

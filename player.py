@@ -5,11 +5,13 @@ import modular
 '''
 from Distribute import joker
 '''
-#joker = modular.Tile(1, modular.TileType.BALL.value) 
 joker = AttributeError # why does this not change, see #93 GH
-discards = list()
-declareds = list()
+if __name__ == "__main__":
+    joker = modular.Tile(1, modular.TileType.BALL.value) 
 #'''
+discardsDict = dict()
+declareds = dict()
+
 
 class Player:
 
@@ -26,7 +28,6 @@ class Player:
         self.jokers = list()
 
         self.declared = list()
-        #self.kang = list()
 
         self.num = Player.i
         Player.i += 1
@@ -59,6 +60,7 @@ class Player:
 
         return True
 
+
     def sortHand(self, firstSort=False, testOutput=False):
         if firstSort:            
             for tile in self.hand:
@@ -77,11 +79,12 @@ class Player:
 
         
         #if len(self.hand) == len(sortedHand) or len(self.hand)+1 == len(sortedHand):
-        if len(sortedHand) + len(self.declared) == 17: # 17CHANGEME REMOVEME
+        if len(sortedHand) + len(self.declared) == 17:
             self.hand = sortedHand
-        elif firstSort and len(sortedHand) == 16:
+        elif firstSort and len(sortedHand)+len(self.declared) == 16:
             self.hand = sortedHand
         else:
+            return
             print("Hand != sortedHand on p",self.num)
             print("len old hand",len(self.hand),self.hand)
             print("len new hand",len(sortedHand),sortedHand)
@@ -89,12 +92,13 @@ class Player:
             raise Exception
         return True
 
+
     def bunot(self, tile, testOutput=False):
         """
         Returns True on a non-flores bunot
         """
-        if testOutput:
-            print("P",self.num," bunot", tile)
+        
+        print("P",self.num," bunot", tile)
 
         # properly append if applicable
         if not self._place(tile): #it was flores
@@ -114,9 +118,6 @@ class Player:
         self.sortHand(testOutput=testOutput)
         return True
 
-    def decideAction(self):
-        raise NotImplementedError()
-
     def tapon(self):
         """
         Given a 17-long (18 on a kang with regular win)
@@ -129,10 +130,13 @@ class Player:
 
         throw = AttributeError
         while True:
-            throwIndex = int(input("Throw what?\n> "))
-            if throwIndex < len(self.hand):
-                throw = self.hand[throwIndex]
-                break
+            try:
+                throwIndex = int(input("Throw what?\n> "))
+                if throwIndex < len(self.hand):
+                    throw = self.hand[throwIndex]
+                    break
+            except:
+                continue
         
         useFace = self._setFace(throw)
         
@@ -152,18 +156,23 @@ class Player:
 
         if len(sameValues) - sameValues.count(None) > 1: # at least 2 ; can pong
 
-            if len(sameValues) - sameValues.count(None) > 2: # kang
-                print("no kang yet")
-                raise NotImplementedError
-
             while True:
                 print(self.hand)
                 choice = input("Pong " + str(tile) + "?\n(y)es or (n)o\n> ")
                 if choice == "y":
+                    tempSet = list()
                     for i in sameValues[::-1]:
-                        self.declared.append( tface.pop(i) )
-                    self.declared.append(tile)
+                        if i != None:
+                            tempSet.append( tface.pop(i) )
 
+                    if len(tempSet) < 3:
+                        tempSet.append(tile)
+                    else:
+                        tface.append(tile)
+                    
+                    self.declared.extend(tempSet)
+
+                    self.sortHand()
                     return True
                 elif choice == "n":
                     return False
@@ -181,8 +190,11 @@ class Player:
                     print(i,":",t)
                     
                 # get two tiles from tface
-                chao1 = int(input("First tile index: "))
-                chao2 = int(input("Second tile index: "))
+                try:
+                    chao1 = int(input("First tile index: "))
+                    chao2 = int(input("Second tile index: "))
+                except:
+                    continue
 
                 if chao2 < chao1:
                     temp = chao1
@@ -200,6 +212,7 @@ class Player:
 
                     self.declared.extend(tempChao)
 
+                    self.sortHand()
                     return True
                 
                 # reset loop
@@ -208,6 +221,12 @@ class Player:
 
         return False
         
+    def todas(self):
+        import todas
+        if todas.todas(self.hand, joker):
+            if input("State you've won?\n(y)es/(n)o\n> ") == "y":
+                return True
+        return False
 
     
 class BasicAI(Player):
@@ -219,8 +238,7 @@ class BasicAI(Player):
         #self.almostSets = list()
         #self.rem = list()
 
-    def sortHand(self, firstSort=False, testOutput=False):
-        #super(self.__class__, self).sortHand(firstSort)
+    def sortHand(self, firstSort=False, midFix=False, testOutput=False):
         if firstSort:
             for tile in self.hand:
                 self._place(tile)
@@ -228,7 +246,7 @@ class BasicAI(Player):
                 print("\nfirst",end="")
         else:
             #ΔCHANGEME chk for seven pairs first
-            self._resetPairs(testOutput)
+            self._resetPairs()
 
         if testOutput:
             print("P" + str(self.num) ,self.ball, self.stick, self.char, self.jokers, 
@@ -250,22 +268,20 @@ class BasicAI(Player):
 
         sortedHand = self.ball + self.stick + self.char + self.jokers + self.pairs + self.sets 
 
-        if len(sortedHand) == 15:
-            print("wy ->", sortedHand)
-            raise Exception
-
         #if len(self.hand) == len(sortedHand) or len(self.hand)+1 == len(sortedHand):
         if len(sortedHand) + len(self.declared) == 17: # 17CHANGEME REMOVEME
             self.hand = sortedHand
-        elif firstSort and len(sortedHand) == 16:
+        elif (firstSort or midFix) and len(sortedHand) + len(self.declared) == 16:
             self.hand = sortedHand
         else:
+            return
             print("\nHand != sortedHand on p",self.num)
             print("len old hand",len(self.hand),self.hand)
             print("len new hand",len(sortedHand),sortedHand)
             print("from",self.ball, self.stick, self.char, self.jokers,
             self.declared, self.pairs, self.sets, sep="\n\t")
             raise Exception
+            
 
 
     def _group(self, nonFlores, firstSort=False, testOutput=False):
@@ -274,7 +290,7 @@ class BasicAI(Player):
             self._makeStraight(nonFlores, testOutput)
             self._makePairs(nonFlores, testOutput)
 
-    def _resetPairs(self, testOutput):
+    def _resetPairs(self):
         for i in range(len(self.pairs)):
             tile = self.pairs.pop()
             self._setFace(tile).append(tile)
@@ -293,10 +309,6 @@ class BasicAI(Player):
 
             midIndex = next((j for j, item in enumerate(nonFlores[i+1:]) if item.value == tile.value+1), None)
             endIndex = next((j for j, item in enumerate(nonFlores[i+2:]) if item.value == tile.value+2), None) 
-
-            # ΔCHANGEME may need this when checking lists of mixed suits
-            #midIndex = next((j for j, item in enumerate(nonFlores[i+1:]) if item.value == tile.value+1 and item.face == tile.face), None)
-            #endIndex = next((j for j, item in enumerate(nonFlores[i+2:]) if item.value == tile.value+2 and item.face == tile.face), None) 
 
             if testOutput:
                 print(midIndex+i if midIndex is not None else None, endIndex, end="\n")
@@ -343,32 +355,143 @@ class BasicAI(Player):
         if testOutput:
             print("\n\tPairs now ->",self.pairs, "\n")
 
-        def tapon(self):
-            """
-            Given a 17-long (18 on a kang with regular win)
-            remove a tile from hand and return it
-            """
-            #'''
-            throw = self.hand.pop(0) # causes errors thrown from pair/set FIXME CHANGEME
-            useFace = self._setFace(throw)
+    def randTapon(self):
+        throw = self.hand.pop(0)
+        useFace = self._setFace(throw)
             
-            indexOfRemove = [j if t.value == throw.value else None for j,t in enumerate(useFace)]
-                
-            for i in indexOfRemove:
-                if i is not None:
-                    useFace.pop(i)
-                    break
+        indexOfRemove = [j if t.value == throw.value else None for j,t in enumerate(useFace)]
+            
+        for i in indexOfRemove:
+            if i is not None:
+                useFace.pop(i)
+                break
 
-            return throw
+        return throw
+
+    def tapon(self, ignore=list(), mustThrow=False):
+        """
+        Given a 17-long (18 on a kang with regular win)
+        remove a tile from hand and return it
+        """
+        #'''
+        if not ignore:
+            nonFlores = self.ball if len(self.ball) < len(self.char) and len(self.ball) > 0 else self.char
+            nonFlores = self.stick if len(self.stick) < len(nonFlores) and len(self.stick) > 0 else nonFlores
+        else:
+            if len(ignore) == 3:
+                return self.randTapon()
+                
+            nonFlores = self.ball
+            if self.ball in ignore:
+                nonFlores = self.char
+            if self.char in ignore:
+                nonFlores = self.stick
+        
+
+        if nonFlores: 
+            throw = self._difference(nonFlores, mustThrow=mustThrow)
+            if isinstance(throw, modular.Tile): # legal tile
+                return throw
+            else:
+                ignore.append(nonFlores)
+                throw = self.tapon(ignore=ignore)
+
+        else:
+            try:
+                print("break set")
+                # break set
+                remPairs = dict()
+                for t in self.pairs:
+                    remPairs[t] = remPairs.get(t, 4) - 1
+                    
+                for p in remPairs:
+                    if remPairs[p] < 2: # ΔREVIEWME
+                        remPairs[p] += 4
+                    
+                for p in remPairs:
+                    remPairs[p] -= (declareds.get(p,0) + discardsDict.get(p,0))
+                
+                minKey = min(remPairs, key=remPairs.get)
+                self.pairs.remove(minKey)
+                self._resetPairs()
+                
+                return minKey
+            except:
+                return self.randTapon()
+
+
+
+    def _difference(self, nonFlores, mustThrow):
+        """
+        Takes a nonFlores and returns the least necessary item
+        """
+
+        if len(nonFlores) == 1:
+            if discardsDict.get(nonFlores[0],0) + declareds.get(nonFlores[0],0) > 1:
+                return nonFlores.pop()
+            elif mustThrow:
+                return nonFlores.pop()
+            else:
+                return None
+
+
+        distanceFromNeighbor = list()
+
+        i=0
+        past2 = list()
+        while i < len(nonFlores):
+            if len(past2) < 2:
+                if past2:
+                    distanceFromNeighbor.append(nonFlores[i].value - past2[0].value)
+                past2.append(nonFlores[i])
+            else:
+                '''
+                1
+                1   2   4   
+                        ^useface
+                '''
+                left = past2[1].value - past2[0].value
+                right = nonFlores[i].value - past2[1].value
+                distanceFromNeighbor.append( left if left < right else right )
+
+                if i == len(nonFlores) - 1:
+                    distanceFromNeighbor.append(right)
+
+            i += 1
+
+        '''
+                3
+        1   2   5   8   9
+                ^ throw
+
+        
+        1   1   2      1   1
+        1   2   4      8   9
+        ^throw
+        '''
+
+        if max(distanceFromNeighbor) > 2:
+            index = distanceFromNeighbor.index(max(distanceFromNeighbor))
+            return nonFlores.pop(index)
+        else:
+            if not mustThrow:
+                return None
+            else: # throw max
+                usedTiles = list()
+                for t in nonFlores:
+                    usedTiles.append( discardsDict.get(t,0) + declareds.get(t,0) + 1)
+
+                index = usedTiles.index(max(usedTiles))
+                return nonFlores.pop(index)
+
+
 
     def pong(self, tile, testOutput=False):
         sameValues = [j if t.value == tile.value and t.face == tile.face else None for j,t in enumerate(self.pairs)]
         
         if len(self.pairs)/2 < 4:
             if len(sameValues) - sameValues.count(None) > 1: # if sameTiles at least 2
-                if len(sameValues) - sameValues.count(None) > 2: #kang
-                    print("kang not implemented..")
-                    raise NotImplementedError
+
 
                 if testOutput:
                     print("pairs", self.pairs, "\nsameValues", sameValues)
@@ -386,7 +509,7 @@ class BasicAI(Player):
                     if i != None:
                         face.pop(i)
                 
-                self.sortHand()
+                self.sortHand(midFix=True)
                 return True
 
         return False
@@ -488,132 +611,32 @@ class BasicAI(Player):
 
         return False
 
-    
-    # def tapon(self):
-    #     '''
-    #     Prioritize making sets
-    #     Make pairs
-
-    #     From loose tiles:
-    #         Throw what is already discarded/declared
-    #             less likely to form pairs
-
-    #         Throw what is furthest from your current cards
-    #             e.g. given [4 5 6], throw 1 instead of 8
-
-    #     Else, from loose, throw randomly
-
-    #     '''
-
-    #     return None
-
-    def todas(self, testOutput=False):
-
-        # assuming 5 sets, 1 pair
-        hasPair = len(self.pairs)/2 == 1
-
-        if not self.stick and not self.ball and not self.char:
-
-            # assuming 5 sets, 1 pair
-            if len(self.sets) / 3 == 5 and hasPair:  # 5 straights
-                return True
-
-        # joker test, assuming one
-        remJokers = len(joker)
-
-        # needs pair, len(nonFlores == odd)
-        # needs straight len(nonFlores == even)
-
-        for nonFlores in [self.ball, self.char, self.stick]:
-            if nonFlores: # items exist
-                usedJokers = self._jokersUsed(nonFlores, hasPair)
-                if usedJokers < 1: # set not found
-                    return False
-                remJokers -= usedJokers
-
-        if remJokers != 0: # all jokers sucessfully used
-            return False
-        else:
+    def todas(self):
+        import todas
+        if todas.todas(self.hand, joker):
             return True
-    
-    def _jokersUsed(self, nonFlores, hasPair):
-        '''
-        Returns jokers used for valid set
-        '''
-
-        if len(nonFlores) == 1: # joker need for pair
-            if hasPair: # but we already have a pair
-                # assume need a set
-                return 2
-            else:
-                return 1
-                
-
-        usedJokers = 0
-        j = 0
-        while j < len(nonFlores):
-            difference = [t.value - nonFlores[j].value for t in nonFlores[j+1:]]
-
-            if difference[0] < 3: # max difference 2, can make set
-                usedJokers += 1
-                j += 2
-
-            else: # diff greater than 3, set not viable
-                if hasPair: # must be a set
-                    usedJokers += 2
-                    j += 2
-                else: # must be a pair
-                    usedJokers += 1
-                    j += 1
-
-        return usedJokers
 
 
 
 if __name__ == "__main__":
-    '''
-    p = Player("dot hand ref", "dot flores ref")
-    print("player",p.hand, p.flores, sep="\t\t")    
-    '''
 
     import Distribute
 
     players = Distribute.initMahjong()
-    #joker = modular.Tile(1, modular.TileType.BALL.value) # TESTING VV
     joker = Distribute.joker
 
+    from modular import Tile
+    players[0].hand = [Tile(4, "Ball"), Tile(8, "Ball"), Tile(5, "Stick"), Tile(1, "Character"), Tile(3, "Character"), Tile(5, "Character"), Tile(8, "Character"), Tile(8, "Character"), Tile(2, "Stick"), Tile(2, "Stick"), Tile(6, "Ball"), Tile(7, "Ball"), Tile(8, "Ball"), Tile(7, "Stick"), Tile(8, "Stick"), Tile(9, "Stick")]
+    players[0].bunot(Tile(4, "Character"))
+    '''
+    import Distribute
 
-    print("\n\nBefore sorting")
-    print(" joker:", joker)
-    for i, p in enumerate(players):
-        if i == 0: # TESTING
-            print("\nplayer",i,"\n",p)
-    print()
+    players = Distribute.initMahjong()
 
-    
-    for p in players:
-        p.sortHand(firstSort=True)
-    print("\nAfter sorting")
+    joker = Distribute.joker
+    print(joker)
 
-    for i, p in enumerate(players):
-        if i == 0: # TESTING
-            print("\nplayer",i,"\n",p)
-    print()
-
-
-    print("\ntest dumb tapon on p0")
-    for i in range(1, 10):
-        print("throwing ",players[0].tapon(),end="\t\t")
-        players[0].bunot(modular.Tile(i, modular.TileType.BALL.value))
-
-
-    print("\nbaisc ai init...")
-    baAI = BasicAI(players[3].hand, players[3].flores)
-    
-    
-    print("\nai group test")
-    baAI.sortHand(firstSort=True)
-    print("sets",baAI.sets)
-    print("pairs",baAI.pairs)
-    
-    #'''
+    #todas test
+    print(players[0])
+    print(players[0].todas())
+    '''

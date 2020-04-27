@@ -27,7 +27,6 @@ play
 
 
 winning
-    calculate payment
 
 
 '''

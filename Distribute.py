@@ -29,14 +29,13 @@ play
 
 
 winning
-    calculate payment
 
 
 '''
 
 
 import Wall, math, rng
-from player import Player, joker
+from player import Player
 from rng import rollDice
 from enum import Enum
 from modular import TileType
